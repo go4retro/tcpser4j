@@ -32,7 +32,7 @@ import org.jbrain.hayes.*;
 import org.jbrain.io.nvt.*;
 
 public class TCPPort extends Thread implements LinePort {
-	private boolean _bDCD=true;
+	private boolean _bDCD=false;
 	private boolean _bDSR=false;
 	private static Logger _log=Logger.getLogger(TCPPort.class);
 	private Socket _sock;
@@ -69,6 +69,9 @@ public class TCPPort extends Thread implements LinePort {
 			try {
 				port=Integer.parseInt(address.substring(pos+1).trim());
 			} catch (NumberFormatException e) {
+				// port is still 23
+				// probably should throw an error
+				throw new PortException("'" + address.substring(pos+1).trim() + "' is not a valid port",e);
 			}
 		} else {
 			host=address;
@@ -92,6 +95,8 @@ public class TCPPort extends Thread implements LinePort {
 			throw new PortException("IO Error",e);
 		}
 		setDaemon(true);
+		// we are connected.
+		setDCD(true);
 	}
 
 
@@ -133,9 +138,7 @@ public class TCPPort extends Thread implements LinePort {
 				_pos.write(len);
 			} else {
 				// bad connection.
-				_bRunning=false;
-				if(_ringer != null)
-					_ringer.cancel();
+				// we'll reset() in the finally clause.
 			}
 			while(_bRunning && (len=is.read(data)) > -1) {
 				_log.debug(new String(data,0,len));
@@ -143,12 +146,12 @@ public class TCPPort extends Thread implements LinePort {
 				sendEvent(new LineEvent(this,LineEvent.DATA_AVAILABLE,false,true));
 				// send event.
 			}
-			if(len<0) {
-				setDTR(false);
-			}
 		} catch (IOException e) {
-			_log.error(e);
-			setDTR(false);
+			if(_bRunning) {
+				_log.error("Error while receiving data", e);
+			}
+		} finally {
+			reset();
 		}
 	}
 	
@@ -170,28 +173,28 @@ public class TCPPort extends Thread implements LinePort {
 	 * @see org.jbrain.hayes.LinePort#setDTR(boolean)
 	 */
 	public void setDTR(boolean b) {
-		if(_bRunning != b) {
-			setDSR(b);
-		}
-		// if we are currently running or never started
-		if(_bRunning || !this.isAlive()) {
-			if(_ringer!= null){
-				// turn off ringer.
-				_ringer.cancel();
-			}
-			if(!b) {
-				// turn off
-				_bRunning=false;
-				setDCD(b);
-				try {
-					_sock.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		
+		setDSR(b);
+		if(!b)
+			reset();
 	}
+
+	/**
+	 * 
+	 */
+	private void reset() {
+		if(_ringer!= null){
+			// turn off ringer.
+			_ringer.cancel();
+		}
+		// turn off
+		_bRunning=false;
+		setDCD(false);
+		try {
+			_sock.close();
+		} catch (IOException e) {
+		}
+	}
+
 
 	/**
 	 * @param b
@@ -215,7 +218,7 @@ public class TCPPort extends Thread implements LinePort {
 	/* (non-Javadoc)
 	 * @see org.jbrain.hayes.ModemPort#addEventListener(org.jbrain.hayes.ModemEventListener)
 	 */
-	public void addEventListener(LineEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(LineEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 
@@ -282,6 +285,15 @@ public class TCPPort extends Thread implements LinePort {
 	 */
 	public boolean isRI() {
 		return false;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.jbrain.hayes.LinePort#answer()
+	 */
+	public void answer() throws IOException {
+		_ringer.cancel();
+		setDCD(true);
 	}
 
 }

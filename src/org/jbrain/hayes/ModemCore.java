@@ -24,13 +24,11 @@ package org.jbrain.hayes;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.TooManyListenersException;
 
 import org.apache.log4j.*;
 import org.jbrain.hayes.cmd.*;
 import org.jbrain.io.LogInputStream;
 import org.jbrain.io.LogOutputStream;
-import org.jbrain.util.*;
 
 public abstract class ModemCore {
 	private LinePortFactory _factory;
@@ -91,19 +89,16 @@ public abstract class ModemCore {
 		try {
 			_isDCE=new LogInputStream(port.getInputStream(),"Serial In");
 			_osDCE=new LogOutputStream(port.getOutputStream(),"Serial Out");
-		} catch (IOException e) {
-			_log.error(e);
-		}
-		this.setConfig(cfg);
-		_timer=new EscapeTimer(this);
-		getDCEPort().removeEventListener(_dceEventListener);
-		try {
+			this.setConfig(cfg);
+			_timer=new EscapeTimer(this);
+			getDCEPort().removeEventListener(_dceEventListener);
 			getDCEPort().addEventListener(_dceEventListener);
-		} catch (java.util.TooManyListenersException e) {
-			_log.error(e);
+			port.start();
+			reset();
+		} catch (IOException e) {
+			/// hmm what to do
+			_log.fatal(e);
 		}
-		port.start();
-		reset();
 	}
 	
 	protected void handleDCEEvent(DCEEvent event) {
@@ -116,7 +111,7 @@ public abstract class ModemCore {
 					int len=_isDCE.read(_dceData);
 					parseData(_dceData,len);
 				} catch (IOException e) {
-					_log.error(e);
+					_log.fatal(e);
 					/// hmm what to do
 				}
 				break;
@@ -161,7 +156,7 @@ public abstract class ModemCore {
 					}
 				} catch (IOException e) {
 					_log.error(e);
-					/// hmm what to do
+					// hmm what to do?
 				}
 				break;
 			case LineEvent.RI:
@@ -175,6 +170,7 @@ public abstract class ModemCore {
 						try {
 							answer();
 						} catch (PortException e) {
+							// what to do here?
 							_log.error(e);
 						}
 					}
@@ -243,7 +239,12 @@ public abstract class ModemCore {
 		} else if (getConnDirection() != CONNDIR_NONE) {
 			_timer.checkData(data,0,len);
 			// data to send to remote side.
-			_osLine.write(data,0,len);
+			try {
+				_osLine.write(data,0,len);
+			} catch (IOException e) {
+				_log.error("Line error",e);
+				hangup();
+			}
 		} else {
 			// we went to data mode, but no conn, so go back on hook and in cmd mode
 			setCommandMode(true);
@@ -349,6 +350,11 @@ public abstract class ModemCore {
 		if(getLinePort() != null) {
 			getDCEPort().setDCD(true);
 			getLinePort().setDTR(true);
+			try {
+				getLinePort().answer();
+			} catch (IOException e) {
+				throw new PortException("Line cannot be answered",e);
+			}
 			sendResponse(ResponseMessage.getConnectResponse(getSpeed(),_cfg.getResponseLevel()),"");
 			setConnDirection(CONNDIR_INCOMING);
 		}
@@ -499,9 +505,6 @@ public abstract class ModemCore {
 			} catch (IOException e) {
 				_log.fatal(e);
 				throw new PortException("IO Error",e);
-			} catch (java.util.TooManyListenersException e) {
-				_log.error(e);
-				throw new PortException("Event listener setup failed",e);
 			}
 		} else {
 			_osLine=null;
@@ -537,7 +540,7 @@ public abstract class ModemCore {
 						_osDCE.write((char)_cfg.getRegister(3));
 					}
 				} catch (IOException e) {
-					_log.error(e);
+					_log.fatal(e);
 				}
 			}
 		}	
@@ -555,7 +558,8 @@ public abstract class ModemCore {
 				_osDCE.write((char)_cfg.getRegister(4));
 				_osDCE.write(string.getBytes());
 			} catch (IOException e) {
-				_log.error(e);
+				// hmm what to do?
+				_log.fatal(e);
 			}
 		}
 	}
@@ -632,7 +636,7 @@ public abstract class ModemCore {
 	}
 
 	
-	public void addEventListener(ModemEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(ModemEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 

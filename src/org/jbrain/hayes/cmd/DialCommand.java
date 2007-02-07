@@ -44,7 +44,7 @@ public class DialCommand extends AbstractCommand {
 		
 	public int parse(byte[] data, int iPos, int iLen) throws CommandException {
 		// skip over blanks.
-		while(iPos<iLen && data[iPos]==' ') { iPos++; }
+		//while(iPos<iLen && data[iPos]==' ') { iPos++; }
 		if(iPos< iLen) {
 			_mod=Character.toUpperCase((char)data[iPos]);
 			switch(_mod) {

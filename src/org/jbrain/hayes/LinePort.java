@@ -22,6 +22,8 @@
 
 package org.jbrain.hayes;
 
+import java.io.IOException;
+
 public interface LinePort extends ModemPort {
 
 	/**
@@ -31,7 +33,8 @@ public interface LinePort extends ModemPort {
 	boolean isDCD();
 	boolean isRI();
 	boolean isDTR();
+	void answer() throws IOException ;
 	void setDTR(boolean b);
-	void addEventListener(LineEventListener lsnr) throws java.util.TooManyListenersException;
+	void addEventListener(LineEventListener lsnr);
 	void removeEventListener(LineEventListener listener);
 }

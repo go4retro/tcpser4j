@@ -30,6 +30,6 @@ public interface DCEPort extends ModemPort {
 	boolean isRI();
 	void setDSR(boolean b);
 	boolean isDSR();
-	void addEventListener(DCEEventListener lsnr) throws java.util.TooManyListenersException;
+	void addEventListener(DCEEventListener lsnr);
 	void removeEventListener(DCEEventListener listener);
 }

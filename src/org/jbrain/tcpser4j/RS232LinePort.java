@@ -75,7 +75,7 @@ public class RS232LinePort extends AbstractRS232Port implements LinePort {
 	/* (non-Javadoc)
 	 * @see org.jbrain.hayes.LinePort#addEventListener(org.jbrain.hayes.DCEEventListener)
 	 */
-	public void addEventListener(LineEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(LineEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 
@@ -123,5 +123,12 @@ public class RS232LinePort extends AbstractRS232Port implements LinePort {
 	 */
 	public boolean isRI() {
 		return _serialPort.isRI();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jbrain.hayes.LinePort#answer()
+	 */
+	public void answer() throws IOException {
+		getOutputStream().write("ATA\n".getBytes());
 	}
 }

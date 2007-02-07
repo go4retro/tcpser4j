@@ -57,7 +57,7 @@ public class IP232Port extends Thread implements DCEPort {
 	}
 	
 	public void run() {
-		Socket socket;
+		Socket socket=null;
 		InputStream is;
 		PipedOutputStream pos;
 		byte data[]=new byte[1024];
@@ -75,13 +75,15 @@ public class IP232Port extends Thread implements DCEPort {
 						pos.write(data,0,len);
 						sendEvent(new DCEEvent(this,DCEEvent.DATA_AVAILABLE,false,true));
 					}
-					socket.close();
+				} catch (IOException e) {
+					_log.error("Error during socket read", e);
+				} finally {
+					if(socket!= null)
+						socket.close();
 					socket=null;
 					_os.setOutputStream(null);
 					// bring DTR low
 					setDTR(false);
-				} catch (IOException e) {
-					_log.error(e);
 				}
 			}
 		} catch (IOException e) {
@@ -118,7 +120,7 @@ public class IP232Port extends Thread implements DCEPort {
 	/* (non-Javadoc)
 	 * @see org.jbrain.hayes.DCEPort#addEventListener(org.jbrain.hayes.DCEEventListener)
 	 */
-	public void addEventListener(DCEEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(DCEEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 

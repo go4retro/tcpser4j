@@ -98,7 +98,7 @@ public class RS232DCEPort extends AbstractRS232Port implements DCEPort {
 	/* (non-Javadoc)
 	 * @see org.jbrain.hayes.DCEPort#addEventListener(org.jbrain.hayes.DCEEventListener)
 	 */
-	public void addEventListener(DCEEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(DCEEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 

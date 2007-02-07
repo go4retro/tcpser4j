@@ -139,8 +139,6 @@ public class RemoteDCEPort extends Thread implements DCEPort {
 						}
 					} catch (IOException e) {
 						_log.error(e);
-					} catch (TooManyListenersException e) {
-						_log.error(e);
 					} finally {
 						_sock.close();
 						_cos.setOutputStream(null);
@@ -195,7 +193,7 @@ public class RemoteDCEPort extends Thread implements DCEPort {
 	/* (non-Javadoc)
 	 * @see org.jbrain.hayes.DCEPort#addEventListener(org.jbrain.hayes.DCEEventListener)
 	 */
-	public void addEventListener(DCEEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(DCEEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 

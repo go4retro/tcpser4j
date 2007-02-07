@@ -117,7 +117,7 @@ public class RemoteDCEInputStream extends InputStream {
 		}
 	}
 
-	public void addEventListener(RemoteDCEEventListener lsnr) throws TooManyListenersException {
+	public void addEventListener(RemoteDCEEventListener lsnr) {
 		_listeners.add(lsnr);
 	}
 

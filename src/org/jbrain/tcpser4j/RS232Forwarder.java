@@ -31,7 +31,6 @@ import org.apache.log4j.*;
 import org.jbrain.hayes.*;
 import org.jbrain.hayes.remote.*;
 import org.jbrain.io.*;
-import org.jbrain.util.*;
 
 public class RS232Forwarder extends Thread {
 	private static Logger _log=Logger.getLogger(RS232Forwarder.class);
@@ -69,9 +68,6 @@ public class RS232Forwarder extends Thread {
 			start();
 		} catch (IOException e) {
 			_log.fatal("Could not listen to port " + ipPort,e);
-			throw e;
-		} catch (TooManyListenersException e) {
-			_log.fatal("Could not add listener to serial port",e);
 			throw e;
 		}
 	}
@@ -136,8 +132,6 @@ public class RS232Forwarder extends Thread {
 			}
 		} catch (IOException e) {
 			_log.fatal("Network Error",e);
-		} catch (TooManyListenersException e) {
-			_log.fatal("Could not add listener to remote stream",e);
 		}
 	}
 	
