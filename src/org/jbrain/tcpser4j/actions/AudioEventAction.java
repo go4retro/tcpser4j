@@ -57,53 +57,64 @@ public class AudioEventAction extends AbstractEventAction {
 		try {
 			_log.info("Playing audio clip: " + data);
 	        // From file
-	        AudioInputStream stream = AudioSystem.getAudioInputStream(new File(data));
-	    
-	        // At present, ALAW and ULAW encodings must be converted
-	        // to PCM_SIGNED before it can be played
-	        AudioFormat format = stream.getFormat();
-	        /*
-	        if (format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
-	            format = new AudioFormat(
-	                    AudioFormat.Encoding.PCM_SIGNED,
-	                    format.getSampleRate(),
-	                    format.getSampleSizeInBits()*2,
-	                    format.getChannels(),
-	                    format.getFrameSize()*2,
-	                    format.getFrameRate(),
-	                    true);        // big endian
-	            stream = AudioSystem.getAudioInputStream(format, stream);
-	        }*/
-	    
-	        // Create the clip
-	        DataLine.Info info = new DataLine.Info(
-	            Clip.class, stream.getFormat(), ((int)stream.getFrameLength()*format.getFrameSize()));
-	        Clip clip = (Clip) AudioSystem.getLine(info);
-	    
-	        // This method does not return until the audio file is completely loaded
-	        clip.open(stream);
-	    
-	        clip.loop(getIterations()-1);
-	        if(!isAsynchronous()) {
-	        	//	      Add a listener for line events
-		        clip.addLineListener(new LineListener() {
-		            public void update(LineEvent evt) {
-		                if (evt.getType() == LineEvent.Type.STOP) {
-		                	synchronized(AudioEventAction.this) {
-		                		AudioEventAction.this.notify();
-		                	}
-		                }
-		            }
-		        });
-		        synchronized(this) {
-		        	this.wait();
-		        }
-	        }
-	        
+			
+			play(new FileInputStream(data),getIterations(),!isAsynchronous());
 	        
 	    } catch (Exception e) {
 	    	_log.error("Error encountered playing audio clip",e);
 	    }
 	}
 
+	/**
+	 * @param clip
+	 * @param iterations
+	 * @param b
+	 */
+	protected static void play(InputStream is, int iterations, boolean synchronous) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+		final Object mutex=new Object();
+        AudioInputStream stream;
+        
+		stream = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
+		// At present, ALAW and ULAW encodings must be converted
+        // to PCM_SIGNED before it can be played
+        AudioFormat format = stream.getFormat();
+        if (!format.getEncoding().equals(AudioFormat.Encoding.PCM_SIGNED) && !format.getEncoding().equals(AudioFormat.Encoding.PCM_UNSIGNED)) {
+            format = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    format.getSampleRate(),
+                    format.getSampleSizeInBits()*2,
+                    format.getChannels(),
+                    format.getFrameSize()*2,
+                    format.getFrameRate(),
+                    true);        // big endian
+            stream = AudioSystem.getAudioInputStream(format, stream);
+        }
+    
+        // Create the clip
+        DataLine.Info info = new DataLine.Info(
+            Clip.class, stream.getFormat(), ((int)stream.getFrameLength()*format.getFrameSize()));
+        Clip clip= (Clip) AudioSystem.getLine(info);
+        // This method does not return until the audio file is completely loaded
+        clip.open(stream);
+        clip.loop(iterations-1);
+        if(synchronous) {
+        	//	      Add a listener for line events
+	        clip.addLineListener(new LineListener() {
+	            public void update(LineEvent evt) {
+	                if (evt.getType() == LineEvent.Type.STOP) {
+	                	synchronized(mutex) {
+	                		mutex.notify();
+	                	}
+	                }
+	            }
+	        });
+	        try {
+		        synchronized(mutex) {
+		        	mutex.wait();
+		        }
+	        } catch (InterruptedException e) {
+	        	;
+	        }
+        }
+	}
 }

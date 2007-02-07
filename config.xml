@@ -31,7 +31,7 @@
 				 	file				send a local text file to inbound or outbound connection
 				 	url				send the data from a url to inbound or outbound connection
 				 	audio			play a references WAV audio file
-				 	java			run a java class and send output to inbound or outbound connection (not implemented yet)
+				 	java			run a java class and send output to inbound or outbound connection (content=classname)
 				 	exec			run local app and send output to inbound or oubound connection (not fully implemented yet)
 				 o action can be one of:
 				 	pre_answer	before CONNECT line is sent
@@ -76,6 +76,12 @@
 			<EventAction type="audio" action="pre_connect" direction="local" content="negotiate.wav" iterations="1" asynchronous="false"/>
 			<EventAction type="audio" action="connect" direction="local" content="ONLINE.wav" iterations="1" asynchronous="false"/>
 			-->
+			<EventAction type="audio" action="dial" direction="local" content="audio\dial_tone.wav"/>
+			<EventAction type="java" action="dial" direction="local" content="org.jbrain.tcpser4j.extras.actions.dialing.DialAudioEventAction"/>
+			<EventAction type="audio" action="dial" direction="local" content="audio\ring.wav"/>
+			<EventAction type="audio" action="pre_connect" direction="local" content="audio\V90.wav"/>
+			<EventAction type="audio" action="ring" direction="local" content="audio\ring6.wav" asynchronous="true"/>
+			<EventAction type="audio" action="pre_answer" direction="local" content="audio\V90.wav"/>
 			<!--Default Phone Book entries.  These are shared among the Pool-->
 			<!--
 			<PhoneBook>
@@ -105,7 +111,7 @@
 				<Initialization>m3</Initialization>
 				<Initialization>s3=13</Initialization>
 			-->
-			<!-- Per modem event message files.  See section in TemplateModem for more details -->
+			<!-- Per modem event action entries.  See section in TemplateModem for more details -->
 			<!-- Per modem phone book.  This book is searched first, then the Pool, then the master book -->
 			<!--
 			<PhoneBook>

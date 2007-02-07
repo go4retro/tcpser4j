@@ -53,6 +53,7 @@ public class CommandTokenizer {
 			addCommand(Command.TYPE_NORMAL,'?',"org.jbrain.hayes.cmd.DefaultRegister");
 
 			addCommand(Command.TYPE_EXTENDED,'C',"org.jbrain.hayes.cmd.ForceDCDCommand");
+			addCommand(Command.TYPE_EXTENDED,'D',"org.jbrain.hayes.cmd.DTRCommand");
 			addCommand(Command.TYPE_EXTENDED,'K',"org.jbrain.hayes.cmd.FlowControlCommand");
 		} catch (ClassNotFoundException e) {
 			_log.fatal(e);

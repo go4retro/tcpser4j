@@ -28,7 +28,7 @@ import java.util.*;
 
 public class ModemConfig {
 
-	private int _iDTRAction;
+	private int _iDTRAction=2;
 	private int _iDefRegister;
 	private int _iFlowControl;
 	public static int DIAL_TYPE_PULSE='P';

@@ -1,4 +1,4 @@
-/*
+	/*
 	Copyright Jim Brain and Brain Innovations, 2004,2005
   
 	This file is part of TCPSer4J.
@@ -54,7 +54,6 @@ public class IP232Port extends Thread implements DCEPort {
 			throw new PortException("Listen Error",e);
 		}
 		setDaemon(true);
-		start();
 	}
 	
 	public void run() {

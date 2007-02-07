@@ -92,7 +92,6 @@ public class TCPPort extends Thread implements LinePort {
 			throw new PortException("IO Error",e);
 		}
 		setDaemon(true);
-		//start();
 	}
 
 
@@ -114,7 +113,6 @@ public class TCPPort extends Thread implements LinePort {
 			throw new PortException("IO Error",e);
 		}
 		setDaemon(true);
-		//start();
 	}
 
 	public void run() {
@@ -219,8 +217,6 @@ public class TCPPort extends Thread implements LinePort {
 	 */
 	public void addEventListener(LineEventListener lsnr) throws TooManyListenersException {
 		_listeners.add(lsnr);
-		if(!this.isAlive())
-			start();
 	}
 
 	/* (non-Javadoc)

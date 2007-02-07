@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jardesc>
-    <jar path="C:/mount/home/brain/projects/tcpser4j/lib/tcpser4j-2.0rc4.jar"/>
+    <jar path="C:/mount/home/brain/projects/tcpser4j/lib/tcpser4j-2.0rc6.jar"/>
     <options overwrite="true" compress="true" exportErrors="true" exportWarnings="true" saveDescription="true" descriptionLocation="/tcpser4j/tcpser4j.jardesc" useSourceFolders="false" buildIfNeeded="true"/>
     <manifest manifestVersion="1.0" usesManifest="true" reuseManifest="false" saveManifest="false" generateManifest="true" manifestLocation="">
         <sealing sealJar="false">

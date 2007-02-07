@@ -3,7 +3,7 @@
 LIB=./lib
 DOM4J=$LIB/dom4j-full.jar
 LOG4J=$LIB/log4j-1.2.5.jar
-APP=$LIB/tcpser4j-2.0rc5.jar
+APP=$LIB/tcpser4j-2.0rc6.jar
 RXTX=$LIB/RXTXcomm.jar
 CP="$APP:$DOM4J:$RXTX:$LOG4J:.:$CLASSPATH"
 

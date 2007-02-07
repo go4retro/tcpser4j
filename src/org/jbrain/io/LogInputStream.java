@@ -20,10 +20,11 @@
 	@author Jim Brain
 */
 
-package org.jbrain.util;
+package org.jbrain.io;
 
 import java.io.*;
 import org.apache.log4j.*;
+import org.jbrain.util.Utility;
 
 public class LogInputStream extends FilterInputStream {
 	private Logger _log;

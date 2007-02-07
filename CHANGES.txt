@@ -30,3 +30,11 @@ o ATH1 went to Data mode, but did not take modem off hook.  Fixed
 o Carrier detect going low on line side would say OK, not NO CARRIER.  Fixed
 o CD low on line side would not put phone on hook.  Fixed
 o Added libraries and start script for Linux.
+2.0rc6
+o Added support for arbitrary Java classes to be called as EventActions
+	(They must implement EventAction)
+o Added a few wav files
+o Added a sample Java EventAction that parses a dial string and sounds out the DTMF
+o More ug fixes, relating to when modem goes off hook and when command mode is set
+o Switched LinePort and DCEPort to have explicit start() method, to avoid lost data
+	Also, this gets rid of some ugly kludges as to when to start the listen thread

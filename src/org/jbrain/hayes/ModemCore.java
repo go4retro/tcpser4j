@@ -28,6 +28,8 @@ import java.util.TooManyListenersException;
 
 import org.apache.log4j.*;
 import org.jbrain.hayes.cmd.*;
+import org.jbrain.io.LogInputStream;
+import org.jbrain.io.LogOutputStream;
 import org.jbrain.util.*;
 
 public abstract class ModemCore {
@@ -94,7 +96,13 @@ public abstract class ModemCore {
 		}
 		this.setConfig(cfg);
 		_timer=new EscapeTimer(this);
-		
+		getDCEPort().removeEventListener(_dceEventListener);
+		try {
+			getDCEPort().addEventListener(_dceEventListener);
+		} catch (java.util.TooManyListenersException e) {
+			_log.error(e);
+		}
+		port.start();
 		reset();
 	}
 	
@@ -223,6 +231,8 @@ public abstract class ModemCore {
 						_line_len=0;
 						_bInCmd=false;
 						_bFoundA=false;
+					} else if(Character.toLowerCase((char)ch)=='a') {
+						// do nothing.
 					} else {
 						_bFoundA=false;
 					}
@@ -230,12 +240,14 @@ public abstract class ModemCore {
 					_bFoundA=true;
 				}
 			}
-		} else if (_osLine != null){
+		} else if (getConnDirection() != CONNDIR_NONE) {
 			_timer.checkData(data,0,len);
 			// data to send to remote side.
 			_osLine.write(data,0,len);
 		} else {
+			// we went to data mode, but no conn, so go back on hook and in cmd mode
 			setCommandMode(true);
+			setOffHook(false);
 			if(getConnDirection()==CONNDIR_INCOMING) {
 				sendResponse(ResponseMessage.NO_CARRIER,"no incoming connection");
 			} else {
@@ -255,8 +267,8 @@ public abstract class ModemCore {
 		fireEvent(new ModemEvent(this,ModemEvent.HANGUP));
 		_dcePort.setDCD(false);
 		setConnDirection(CONNDIR_NONE);
-		setOffHook(false);
 		setCommandMode(true);
+		setOffHook(false);
 		if(getLinePort() != null) {
 			// line disconnected
 			// close it down, and unlisten
@@ -334,15 +346,18 @@ public abstract class ModemCore {
 	
 	public CommandResponse answer() throws PortException {
 		fireEvent(new ModemEvent(this,ModemEvent.PRE_ANSWER));
-		setOffHook(true);
 		if(getLinePort() != null) {
-			sendResponse(ResponseMessage.getConnectResponse(getSpeed(),_cfg.getResponseLevel()),"");
+			getDCEPort().setDCD(true);
 			getLinePort().setDTR(true);
+			sendResponse(ResponseMessage.getConnectResponse(getSpeed(),_cfg.getResponseLevel()),"");
+			setConnDirection(CONNDIR_INCOMING);
 		}
+		setOffHook(true);
 		setCommandMode(false);
-		getDCEPort().setDCD(true);
-		setConnDirection(CONNDIR_INCOMING);
-		fireEvent(new ModemEvent(this,ModemEvent.ANSWER));
+		if(getConnDirection()!=CONNDIR_NONE) {
+			fireEvent(new ModemEvent(this,ModemEvent.ANSWER));
+			getLinePort().start();
+		}
 		return CommandResponse.OK;
 	}
 
@@ -384,11 +399,12 @@ public abstract class ModemCore {
 				// go to data mode.
 				setDCD(true);
 				getLinePort().setDTR(true);
+				setConnDirection(CONNDIR_OUTGOING);
 				fireEvent(new ModemEvent(this,ModemEvent.PRE_CONNECT));
 				sendResponse(ResponseMessage.getConnectResponse(getSpeed(),_cfg.getResponseLevel()),"");
 				setCommandMode(false);
-				setConnDirection(CONNDIR_OUTGOING);
 				fireEvent(new ModemEvent(this,ModemEvent.CONNECT));
+				getLinePort().start();
 				return CommandResponse.OK;
 			} catch (LineNotAnsweringException e) {
 				setOffHook(false);
@@ -576,15 +592,9 @@ public abstract class ModemCore {
 		_bInCmd=false;
 		_lastAction=null;
 		
+		this.setDCD(false);
 		this.setCommandMode(true);
 		this.setOffHook(false);
-		this.setDCD(false);
-		getDCEPort().removeEventListener(_dceEventListener);
-		try {
-			getDCEPort().addEventListener(_dceEventListener);
-		} catch (java.util.TooManyListenersException e) {
-			_log.error(e);	
-		}
 	}
 
 	/**

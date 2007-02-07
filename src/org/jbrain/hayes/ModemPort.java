@@ -41,6 +41,7 @@ public interface ModemPort {
 	public static final int BPS_115200 = 115200;
 	public static final int BPS_230400 = 230400;
 	void setFlowControl(int control);
+	void start();
 	InputStream getInputStream() throws IOException;
 	OutputStream getOutputStream() throws IOException;
 	int getSpeed();

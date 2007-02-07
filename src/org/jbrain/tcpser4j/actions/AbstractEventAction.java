@@ -25,13 +25,16 @@ package org.jbrain.tcpser4j.actions;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.util.*;
 
+import org.apache.log4j.Logger;
 import org.jbrain.hayes.*;
 import org.jbrain.hayes.cmd.DialCommand;
+import org.jbrain.tcpser4j.ModemPoolThread;
 
 public abstract class AbstractEventAction implements EventAction {
-
+	private static Logger _log=Logger.getLogger(AbstractEventAction.class);
 	private int _iDir;
 	private int _iAction;
 	private String _sContent;
@@ -121,4 +124,28 @@ public abstract class AbstractEventAction implements EventAction {
 		}
 		return null;
 	}
+
+	/**
+	 * @param dir
+	 * @param action
+	 * @param content
+	 * @param iter
+	 * @param asynch
+	 * @return
+	 */
+	public static EventAction InstantiateEventAction(int dir, int action, String content, int iter, boolean asynch) {
+		try {
+			Class c=ModemPoolThread.class.getClassLoader().loadClass(content);
+			Class parmTypes[]={int.class,int.class,String.class,int.class,boolean.class};
+			Object parms[]={new Integer(dir),new Integer(action),content,new Integer(iter), new Boolean(asynch)};
+			Constructor cons=c.getConstructor(parmTypes);
+			if(cons!= null) {
+				return (EventAction)cons.newInstance(parms);
+			}
+		} catch (Exception e) {
+			_log.error("Could not instantiate user-defined Java EventAction: " + content,e);
+		}
+		return null;
+	}
+
 }

@@ -29,13 +29,7 @@ import java.util.*;
 import org.apache.log4j.*;
 import org.jbrain.hayes.*;
 import org.jbrain.net.*;
-import org.jbrain.tcpser4j.actions.AudioEventAction;
-import org.jbrain.tcpser4j.actions.EventAction;
-import org.jbrain.tcpser4j.actions.EventActionList;
-import org.jbrain.tcpser4j.actions.ExecEventAction;
-import org.jbrain.tcpser4j.actions.FileEventAction;
-import org.jbrain.tcpser4j.actions.JavaEventAction;
-import org.jbrain.tcpser4j.actions.URLEventAction;
+import org.jbrain.tcpser4j.actions.*;
 import org.jbrain.tcpser4j.binding.*;
 
 public class ModemPoolThread extends Thread {
@@ -61,14 +55,11 @@ public class ModemPoolThread extends Thread {
 	
 	public ModemPoolThread(ModemPool pool, Properties masterPB) throws Exception {
 		Line line;
-		
 		ModemInfo template;
 		Properties defPhoneBook=new Properties(masterPB); 
-
 		ModemInfo m;
 		EventActionList actionList;
 		Properties phoneBook;
-		
 		String type;
 		DCEPort port=null;
 		ModemConfig cfg;
@@ -91,6 +82,7 @@ public class ModemPoolThread extends Thread {
 		}
 		for(int i=0,size=pool.getModemSize();i<size;i++) {
 			m=pool.getModem(i);
+			
 			port=getPort(template,m);
 			if(port != null) {
 				cfg=new ModemConfig();
@@ -166,6 +158,7 @@ public class ModemPoolThread extends Thread {
 				
 		} else if(type.equals("ip232")) {
 			try {
+
 				port=new IP232Port(Integer.parseInt(m.getDevice()),speed);
 			} catch (NumberFormatException e) {
 				_log.error(m.getDevice() + " is not a valid IP232Port port number.");
@@ -251,7 +244,11 @@ public class ModemPoolThread extends Thread {
 			} else {
 				dir=EventActionList.DIR_REMOTE;
 			}
-			if(info.getAction().equals(ActionList.VALUE_pre_answer)) {
+			if(info.getAction().equals(ActionList.VALUE_off_hook)) {
+			action=ModemEvent.OFF_HOOK;
+			} else if(info.getAction().equals(ActionList.VALUE_on_hook)) {
+				action=ModemEvent.ON_HOOK;
+			} else if(info.getAction().equals(ActionList.VALUE_pre_answer)) {
 				action=ModemEvent.PRE_ANSWER;
 			} else if(info.getAction().equals(ActionList.VALUE_answer)) {
 				action=ModemEvent.ANSWER;
@@ -268,6 +265,8 @@ public class ModemPoolThread extends Thread {
 				action=ModemEvent.RESPONSE_NO_ANSWER;
 			} else if(info.getAction().equals(ActionList.VALUE_dial)) {
 				action=ModemEvent.DIAL;
+			} else if(info.getAction().equals(ActionList.VALUE_ring)) {
+				action=ModemEvent.RING;
 			} else if(info.getAction().equals(ActionList.VALUE_hangup)) {
 				action=ModemEvent.HANGUP;
 			}
@@ -280,15 +279,16 @@ public class ModemPoolThread extends Thread {
 			else
 				asynch=false;
 			if(info.getContent()!= null) {
-				if(info.getType().equals("file")) {
+				String actionType=info.getType().toLowerCase();
+				if(actionType.equals("file")) {
 					ea=new FileEventAction(dir,action,info.getContent(),iter,asynch);
-				} else if(info.getType().equals("java")) {
-					ea=new JavaEventAction(dir,action,info.getContent(),iter,asynch);
-				} else if(info.getType().equals("exec")) {
+				} else if(actionType.equals("java")) {
+					ea=AbstractEventAction.InstantiateEventAction(dir,action,info.getContent(),iter,asynch);
+				} else if(actionType.equals("exec")) {
 					ea=new ExecEventAction(dir,action,info.getContent(),iter,asynch);
-				} else if(info.getType().equals("url")) {
+				} else if(actionType.equals("url")) {
 					ea=new URLEventAction(dir,action,info.getContent(),iter,asynch);
-				} else if(info.getType().equals("audio")) {
+				} else if(actionType.equals("audio")) {
 					ea=new AudioEventAction(dir,action,info.getContent(),iter,asynch);
 				}
 			}

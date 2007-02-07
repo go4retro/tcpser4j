@@ -55,6 +55,9 @@ public abstract class AbstractRS232Port {
 		_serialPort.setDTR(true);
 		_serialPort.disableReceiveFraming();
 		
+	}
+	
+	public void start() {
 		try {
 			_serialPort.addEventListener(new SerialPortEventListener() {
 				public void serialEvent(SerialPortEvent e) {

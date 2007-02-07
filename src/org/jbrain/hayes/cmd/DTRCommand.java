@@ -22,27 +22,24 @@
 
 package org.jbrain.hayes.cmd;
 
-import org.jbrain.hayes.ModemCore;
-import org.jbrain.hayes.PortException;
+import org.jbrain.hayes.*;
 
-public class HangupCommand extends FlagCommand {
-	
+public class DTRCommand extends FlagCommand {
 	/* (non-Javadoc)
 	 * @see org.jbrain.hayes.cmd.FlagCommand#execute(org.jbrain.hayes.ModemCore)
 	 */
 	public CommandResponse execute(ModemCore core) throws CommandException {
+		ModemConfig cfg=core.getConfig();
 		switch (getLevel()) {
 			case 0:
-				// hangup
-				return core.hangup();
 			case 1:
-				try {
-					return core.answer();
-				} catch (PortException e) {
-					throw new CommandException("Answer failed",e);
-				}
+			case 2:
+			case 3:
+				cfg.setDTRAction(getLevel());
+				break;
 			default:
 				return super.execute(core);
 		}
+		return CommandResponse.OK;
 	}
 }

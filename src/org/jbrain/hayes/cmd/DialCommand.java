@@ -92,5 +92,6 @@ public class DialCommand extends AbstractCommand {
 		// send number back.
 		sb.append(getData());
 		core.sendResponse(sb.toString().toUpperCase());
+		core.sendResponse("");
 	}
 }
