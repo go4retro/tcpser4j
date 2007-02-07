@@ -24,3 +24,9 @@ o Added event handler to ModemCore
 o First steps of adding CaptiveModem support  (very alpha)
 o Added support for audio event actions
 o Added support for url event actions
+2.0rc5
+o NVT code was saying DONT to remote echo request. Fixed
+o ATH1 went to Data mode, but did not take modem off hook.  Fixed
+o Carrier detect going low on line side would say OK, not NO CARRIER.  Fixed
+o CD low on line side would not put phone on hook.  Fixed
+o Added libraries and start script for Linux.

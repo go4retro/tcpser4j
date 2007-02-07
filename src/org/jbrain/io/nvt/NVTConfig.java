@@ -16,7 +16,8 @@ public class NVTConfig {
 	private boolean _bSupressGoAhead=true;
 	private String _sTerminalType="ANSI";
 	private boolean _bTransmitBinary=true;
-	private boolean _bEcho=false;
+	private boolean _bLocalEcho=false;
+	private boolean _bRemoteEcho=true;
 	private int _iHeight=25;
 	private int _iWidth=80;
 	
@@ -95,15 +96,28 @@ public class NVTConfig {
 	/**
 	 * @return
 	 */
-	public boolean isEcho() {
-		return _bEcho;
+	public boolean isLocalEcho() {
+		return _bLocalEcho;
 	}
 
 	/**
 	 * @param b
 	 */
-	public void setEcho(boolean b) {
-		_bEcho = b;
+	public void setLocalEcho(boolean b) {
+		_bLocalEcho = b;
 	}
 
+	/**
+	 * @return
+	 */
+	public boolean isRemoteEcho() {
+		return _bRemoteEcho;
+	}
+
+	/**
+	 * @param b
+	 */
+	public void setRemoteEcho(boolean b) {
+		_bRemoteEcho = b;
+	}
 }

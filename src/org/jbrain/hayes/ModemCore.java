@@ -175,7 +175,6 @@ public abstract class ModemCore {
 			case LineEvent.CD:
 				if(!event.getNewValue()) {
 					// line terminated
-					hangup();
 					sendResponse(hangup().getResponse(),"Carrier Lost");
 				}
 				break;

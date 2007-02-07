@@ -1,0 +1,13 @@
+#!/bin/sh
+
+LIB=./lib
+DOM4J=$LIB/dom4j-full.jar
+LOG4J=$LIB/log4j-1.2.5.jar
+APP=$LIB/tcpser4j-2.0rc5.jar
+RXTX=$LIB/RXTXcomm.jar
+CP="$APP:$DOM4J:$RXTX:$LOG4J:.:$CLASSPATH"
+
+echo $CP
+
+LD_LIBRARY_PATH="$LIB:$LD_LIBRARY_PATH"
+java -Djava.library.path=$LD_LIBRARY_PATH -cp $CP org.jbrain.tcpser4j.TCPSerial config-linux.xml

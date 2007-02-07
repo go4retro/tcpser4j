@@ -171,7 +171,10 @@ public class NVTInputStream extends InputStream {
 										b=_config.isTransmitBinary();
 										break;
 									case (byte)OPT_ECHO:
-										b=_config.isEcho();
+										if(action==(byte)DO)
+											b=_config.isLocalEcho();
+										else
+											b=_config.isRemoteEcho();
 										break;
 									case (byte)OPT_SUPPRESS_GO_AHEAD:
 										b=_config.isSupressGoAhead();
