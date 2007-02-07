@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:element name="Settings">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="PhoneBook" minOccurs="0"/>
+				<xsd:element ref="ModemPool" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ModemPool">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Line" minOccurs="0"/>
+				<xsd:element name="TemplateModem" type="ModemInfo" minOccurs="0"/>
+				<xsd:element name="Modem" type="ModemInfo" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Line">
+		<xsd:complexType>
+			<xsd:attribute name="port" type="xsd:integer"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="ModemInfo">
+		<xsd:sequence>
+			<xsd:element name="Initialization" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Message" type="MessageInfo" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element ref="PhoneBook" minOccurs="0"/>
+			<xsd:element name="CaptiveModem" type="ModemInfo" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="type" type="xsd:string"/>
+		<xsd:attribute name="device" type="xsd:string"/>
+		<xsd:attribute name="speed" type="xsd:integer"/>
+		<xsd:attribute name="parity" type="xsd:string"/>
+		<xsd:attribute name="stopbits" type="xsd:integer"/>
+		<xsd:attribute name="invertDCD" type="xsd:boolean"/>
+	</xsd:complexType>
+	<xsd:complexType name="MessageInfo">
+		<xsd:attribute name="action" type="ActionList"/>
+		<xsd:attribute name="direction" type="DirectionList"/>
+		<xsd:attribute name="location" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:simpleType name="ActionList">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="answer"/>
+			<xsd:enumeration value="connect"/>
+			<xsd:enumeration value="busy"/>
+			<xsd:enumeration value="inactivity"/>
+			<xsd:enumeration value="no_answer"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="DirectionList">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="local"/>
+			<xsd:enumeration value="remote"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:element name="PhoneBook">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Entry" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Entry">
+		<xsd:complexType>
+			<xsd:attribute name="number" type="xsd:string"/>
+			<xsd:attribute name="value" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

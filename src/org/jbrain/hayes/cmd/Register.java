@@ -1,0 +1,143 @@
+/*
+	Copyright Jim Brain and Brain Innovations, 2004,2005
+  
+	This file is part of TCPSer4J.
+
+	SchemaBinder is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	TCPSer4J is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with TCPSer4J; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    
+	@author Jim Brain
+*/
+
+package org.jbrain.hayes.cmd;
+
+import java.text.DecimalFormat;
+
+import org.jbrain.hayes.*;
+
+public class Register extends FlagCommand {
+	public final static char ACTION_DEFAULT=0;
+	public final static char ACTION_QUERY='?';
+	public final static char ACTION_SET='=';
+	
+	private char _action=ACTION_DEFAULT;
+	private String _data;
+	private int _iRegister=0;
+	protected boolean _bExtended=false;
+
+	public int parse(byte[] data, int iPos, int iLen) throws CommandException {
+		int start;
+
+		start=iPos;
+		while(iPos < iLen && data[iPos]>='0' && data[iPos]<='9') { iPos++; }
+		// get register
+		try {
+			setRegister(Integer.parseInt(new String(data,start,iPos-start)));
+		} catch (Exception e) {
+			// assume register 0
+		}
+		// skip over spaces.
+		while(iPos < iLen && data[iPos]==' ') { iPos++; }
+		if(iPos<iLen) {
+			switch(data[iPos]) {
+				case '=':
+					setAction(Register.ACTION_SET);
+					iPos++;
+					break;
+				case '?':
+					setAction(Register.ACTION_QUERY);
+					iPos++;
+					break;
+			}
+			if(getAction() == ACTION_SET) {
+				// skip spaces.
+				while(iPos < iLen && data[iPos]==' ') { iPos++; }
+				if(iPos<iLen) {
+					start=iPos;
+					if(_bExtended) {
+						while(iPos < iLen && data[iPos]==' ') { iPos++; }
+					} else {
+						while(iPos < iLen && data[iPos]>='0' && data[iPos]<='9') { iPos++; }
+					}
+					setValue(new String(data,start,iPos-start));
+				}
+			}
+		} else {
+			// setting default register
+		}
+		return iPos;
+	}
+	
+	/**
+	 * @param string
+	 */
+	protected void setValue(String data) {
+		_data=data;
+	}
+
+	/**
+	 * @param i
+	 */
+	protected void setRegister(int i) {
+		_iRegister=i;
+		
+	}
+	
+	protected void setAction(char action) {
+		_action=action;
+	}
+
+	public CommandResponse execute(ModemCore core) throws CommandException {
+		switch (getAction()) {
+			case ACTION_SET:
+				core.getConfig().setRegister(getRegister(),getIntValue());
+				break;
+			case ACTION_QUERY:
+				DecimalFormat df=new DecimalFormat("000");
+				core.sendResponse(df.format(core.getConfig().getRegister(getRegister())));
+				break;
+			case ACTION_DEFAULT:
+				core.getConfig().setDefaultRegister(getRegister());
+				break;
+		}
+		return CommandResponse.OK;
+		
+	}
+	
+	/**
+	 * @return
+	 */
+	public int getIntValue() throws CommandException {
+		try {
+			return Integer.parseInt(getValue());
+		} catch (NumberFormatException e) {
+			throw new CommandException("Invalid value for Register " + getRegister());
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	public String getValue() {
+		return _data;
+	}
+
+	public int getRegister() {
+		return _iRegister;
+	}
+	
+	public char getAction() {
+		return _action;
+	}
+}

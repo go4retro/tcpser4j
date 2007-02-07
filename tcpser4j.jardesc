@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jardesc>
+    <jar path="C:/mount/home/brain/projects/tcpser4j/lib/tcpser4j-2.0alpha.jar"/>
+    <options buildIfNeeded="true" compress="true"
+        descriptionLocation="/tcpser4j/tcpser4j.jardesc"
+        exportErrors="true" exportWarnings="true" overwrite="false"
+        saveDescription="true" useSourceFolders="false"/>
+    <manifest generateManifest="true" manifestLocation=""
+        manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false">
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.util"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.tcpser4j"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.hayes.cmd"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.io"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.net"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.hayes.remote"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.xml.binding"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.io.nvt"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.hayes"/>
+        <javaElement handleIdentifier="=tcpser4j/&lt;org.jbrain.tcpser4j.binding"/>
+    </selectedElements>
+</jardesc>

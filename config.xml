@@ -1,0 +1,91 @@
+<Settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="TCPSerial.xsd">
+	<!-- Master Phone Book. Items shared among pools can be placed here-->
+	<PhoneBook>
+		<Entry number="madworld" value="murdworld.bounceme.net:23"/>
+		<Entry number="addixion" value="addixion.hopto.org:23"/>
+		<Entry number="antidote" value="antidote.hopto.org:23"/>
+		<Entry number="carbonek" value="65.40.213.24:23"/>
+		<Entry number="dragonseye" value="dragonseye.dyndns.org:6400"/>
+		<Entry number="elmstreet" value="elmstreet.dyndns.org:23"/>
+		<Entry number="forgottenrealms" value="forgottenrealmsbbs.org:23"/>
+		<Entry number="jammingsignal" value="bbs.jammingsignal.com:23"/>
+		<Entry number="hidden" value="the-hidden.hopto.org:23"/>
+		<Entry number="laststand" value="laststandbbs.net:23"/>
+		<Entry number="lostcaverns" value="lostcavernsbbs.dyndns.org:6001"/>
+		<Entry number="lostcaverns1" value="lostcavernsbbs.dyndns.org:6001"/>
+		<Entry number="lostcaverns2" value="lostcavernsbbs.dyndns.org:6002"/>
+		<Entry number="renaissancecity" value="renaissancecitybbs.dyndns.tv:23"/>
+		<Entry number="rkbbs" value="rkbbs.net:23"/>
+	</PhoneBook>
+	<!-- You can have multiple Multiple ModemPools-->
+	<ModemPool>
+		<!-- You can leave Line out for outbound only system -->
+		<Line port="6400"/>
+		<!-- Put any default stuff here that applies to all modems-->
+		<TemplateModem>
+			<!--Default Initialization Parms-->
+			<!--<Initialization>s0=1</Initialization>-->
+			<!--Default Messages for various events-->
+			<!--
+			<Message action="answer" direction="local" location="local_answer.txt"/>
+			<Message action="connect" direction="local" location="local_connect.txt"/>
+			<Message action="busy" direction="local" location="local_busy.txt"/>
+			<Message action="inactivity" direction="local" location="local_inactivity.txt"/>
+			<Message action="no_answer" direction="local" location="local_non_answer.txt"/>
+			<Message action="answer" direction="remote" location="remote_answer.txt"/>
+			<Message action="connect" direction="remote" location="remote_connect.txt"/>
+			<Message action="busy" direction="remote" location="remote_busy.txt"/>
+			<Message action="inactivity" direction="remote" location="remote_inactivity.txt"/>
+			<Message action="no_answer" direction="remote" location="remote_non_answer.txt"/>
+			-->
+			<!--Default Phone Book entries.  These are shared among the Pool-->
+			<!--
+			<PhoneBook>
+				<Entry number="5551212" value="localhost:7"/>
+			</PhoneBook>
+			-->
+		</TemplateModem>
+		<!-- You can have multiple modems per ModemPool.  They will all share the same IP port for incoming calls.-->
+		<!-- Modems all default to 38400 bps, unless specified-->
+		<!-- To set up a Remote RS232 port, use the next line.  
+		     Also remember to run org.jbrain.tcpser4j.RS232Forwarder on remote server before running tcpser4j 
+		-->
+		<!--<Modem type="remote232" device="hostname:port">-->
+		
+		<!-- To set up an inbound port to act like the DCE side of a modem (e.g., for the VICE emulator), use the next line-->
+		<!--<Modem type="ip232" device="25232">-->
+		<!-- for a regular RS232 port, use the next Modem line-->
+		<!-- device is platform specific, COM1-4 for PC, /dev/ttyS? for UNIX, etc.-->
+		<Modem type="rs232" device="COM1" speed="38400">
+			<!-- Per modem init string.  If DefaultInit is also specified, per-modem init is added to end of default -->
+			<Initialization>s0=2</Initialization>
+			<!-- You can have more than one Init line.  It's useful to quickly comment out a specific command-->
+			<!--
+				<Initialization>s0=2</Initialization>
+				<Initialization>&k0</Initialization>
+				<Initialization>l1</Initialization>
+				<Initialization>m3</Initialization>
+				<Initialization>s3=13</Initialization>
+			-->
+			<!-- Per modem event message files.  These override the defaults -->
+			<!--
+			<Message action="answer" direction="local" location="local_answer.txt"/>
+			<Message action="connect" direction="local" location="local_connect.txt"/>
+			<Message action="busy" direction="local" location="local_busy.txt"/>
+			<Message action="inactivity" direction="local" location="local_inactivity.txt"/>
+			<Message action="no_answer" direction="local" location="local_non_answer.txt"/>
+			<Message action="answer" direction="remote" location="remote_answer.txt"/>
+			<Message action="connect" direction="remote" location="remote_connect.txt"/>
+			<Message action="busy" direction="remote" location="remote_busy.txt"/>
+			<Message action="inactivity" direction="remote" location="remote_inactivity.txt"/>
+			<Message action="no_answer" direction="remote" location="remote_non_answer.txt"/>
+			-->
+			<!-- Per modem phone book.  This book is searched first, then the Pool, then the master book -->
+			<!--
+			<PhoneBook>
+				<Entry number="home" value="dilbert"/>
+			</PhoneBook>
+			-->
+		</Modem>
+	</ModemPool>
+</Settings>
