@@ -25,7 +25,7 @@
 	<xsd:complexType name="ModemInfo">
 		<xsd:sequence>
 			<xsd:element name="Initialization" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-			<xsd:element name="Message" type="MessageInfo" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="EventAction" type="EventActionInfo" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element ref="PhoneBook" minOccurs="0"/>
 			<xsd:element name="CaptiveModem" type="ModemInfo" minOccurs="0"/>
 		</xsd:sequence>
@@ -36,18 +36,30 @@
 		<xsd:attribute name="stopbits" type="xsd:integer"/>
 		<xsd:attribute name="invertDCD" type="xsd:boolean"/>
 	</xsd:complexType>
-	<xsd:complexType name="MessageInfo">
-		<xsd:attribute name="action" type="ActionList"/>
-		<xsd:attribute name="direction" type="DirectionList"/>
-		<xsd:attribute name="location" type="xsd:string"/>
-	</xsd:complexType>
+		<xsd:complexType name="EventActionInfo">
+			<xsd:attribute name="type" type="xsd:string"/>
+			<xsd:attribute name="action" type="ActionList"/>
+			<xsd:attribute name="direction" type="DirectionList"/>
+			<xsd:attribute name="content" type="xsd:string"/>
+			<xsd:attribute name="iterations" type="xsd:integer"/>
+			<xsd:attribute name="asynchronous" type="xsd:boolean"/>
+		</xsd:complexType>
 	<xsd:simpleType name="ActionList">
 		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ring"/>
+			<xsd:enumeration value="cmd_mode"/>
+			<xsd:enumeration value="data_mode"/>
+			<xsd:enumeration value="off_hook"/>
+			<xsd:enumeration value="on_hook"/>
+			<xsd:enumeration value="pre_answer"/>
 			<xsd:enumeration value="answer"/>
+			<xsd:enumeration value="pre_connect"/>
 			<xsd:enumeration value="connect"/>
+			<xsd:enumeration value="dial"/>
 			<xsd:enumeration value="busy"/>
-			<xsd:enumeration value="inactivity"/>
 			<xsd:enumeration value="no_answer"/>
+			<xsd:enumeration value="hangup"/>
+			<xsd:enumeration value="inactivity"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:simpleType name="DirectionList">

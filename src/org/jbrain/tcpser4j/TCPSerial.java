@@ -23,12 +23,10 @@
 package org.jbrain.tcpser4j;
 
 import java.io.*;
-import java.net.*;
 import java.util.*;
 import org.apache.log4j.*;
 import org.dom4j.*;
 import org.dom4j.io.*;
-import org.jbrain.hayes.*;
 import org.jbrain.tcpser4j.binding.*;
 
 public class TCPSerial extends Thread {

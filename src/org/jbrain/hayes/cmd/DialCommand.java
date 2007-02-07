@@ -22,9 +22,6 @@
 
 package org.jbrain.hayes.cmd;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import org.jbrain.hayes.*;
 
 public class DialCommand extends AbstractCommand {

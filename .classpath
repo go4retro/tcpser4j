@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="gensrc"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="var" path="LOG4J"/>
-	<classpathentry kind="var" path="GETOPT"/>
-	<classpathentry kind="var" path="RXTX"/>
-	<classpathentry kind="var" path="DOM4J"/>
+	<classpathentry kind="lib" path="C:/mount/home/brain/projects/tcpser4j/lib/RXTXcomm.jar"/>
+	<classpathentry kind="lib" path="C:/mount/home/brain/projects/tcpser4j/lib/dom4j-full.jar"/>
+	<classpathentry kind="lib" path="C:/mount/home/brain/projects/tcpser4j/lib/log4j-1.2.5.jar"/>
+	<classpathentry kind="lib" path="C:/mount/home/brain/projects/tcpser4j/lib/mp3/tritonus_share.jar"/>
+	<classpathentry kind="lib" path="C:/mount/home/brain/projects/tcpser4j/lib/mp3/jl1.0.jar"/>
+	<classpathentry kind="lib" path="C:/mount/home/brain/projects/tcpser4j/lib/mp3/mp3spi1.9.2.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

@@ -22,10 +22,6 @@
 
 package org.jbrain.tcpser4j;
 
-import gnu.io.NoSuchPortException;
-import gnu.io.PortInUseException;
-import gnu.io.UnsupportedCommOperationException;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -33,14 +29,20 @@ import java.util.*;
 import org.apache.log4j.*;
 import org.jbrain.hayes.*;
 import org.jbrain.net.*;
+import org.jbrain.tcpser4j.actions.AudioEventAction;
+import org.jbrain.tcpser4j.actions.EventAction;
+import org.jbrain.tcpser4j.actions.EventActionList;
+import org.jbrain.tcpser4j.actions.ExecEventAction;
+import org.jbrain.tcpser4j.actions.FileEventAction;
+import org.jbrain.tcpser4j.actions.JavaEventAction;
+import org.jbrain.tcpser4j.actions.URLEventAction;
 import org.jbrain.tcpser4j.binding.*;
-import org.jbrain.util.*;
 
 public class ModemPoolThread extends Thread {
 	private static Logger _log=Logger.getLogger(ModemPoolThread.class);
 	private int _socketPort=0;
 	ArrayList _alModems=new ArrayList();
-	MessageStore _defMsgStore=new MessageStore();
+	EventActionList _defActionList=new EventActionList();
 	
 	public ArrayList getModems() {
 		return _alModems;
@@ -64,7 +66,7 @@ public class ModemPoolThread extends Thread {
 		Properties defPhoneBook=new Properties(masterPB); 
 
 		ModemInfo m;
-		MessageStore msgStore;
+		EventActionList actionList;
 		Properties phoneBook;
 		
 		String type;
@@ -73,9 +75,9 @@ public class ModemPoolThread extends Thread {
 		ExtModemCore modem;
 		int speed;
 		HostAddress addy;
-		MessageInfo msg;
 		StringBuffer sbInit=new StringBuffer();
 		int dir,action;
+		LinePortFactory factory=new ExtLinePortFactory();
 		
 		if((line=pool.getLine())!= null && line.getPort() != null) {
 			// get listen port.
@@ -83,67 +85,22 @@ public class ModemPoolThread extends Thread {
 		}
 		template=pool.getTemplateModem();
 		if(template!=null) {
-			addMessages(_defMsgStore,template);
+			addActions(_defActionList,template);
 			if(template.getPhoneBook()!= null)
 				TCPSerial.buildPhoneBook(template.getPhoneBook(),defPhoneBook);
 		}
 		for(int i=0,size=pool.getModemSize();i<size;i++) {
 			m=pool.getModem(i);
-			type=m.getType().toLowerCase();
-			speed=38400;
-			if(template.getSpeed()!= null) {
-				speed=template.getSpeed().intValue();
-			}
-			if(m.getSpeed()!= null) {
-				speed=m.getSpeed().intValue();
-			}
-			if(type.equals("remote232")) {
-				try {
-					addy=new HostAddress(m.getDevice());
-					try {
-						port=new RemoteDCEPort(addy.getHost(),addy.getPort(), speed);
-					} catch (PortException e) {
-						_log.error(m.getDevice() + " returned error during initialization.",e);
-						throw e;
-					}
-				} catch (NumberFormatException e) {
-					_log.error(m.getDevice() + " is invalid.");
-					throw e;
-				}
-				
-				
-			} else if(type.equals("ip232")) {
-				try {
-					port=new IP232Port(Integer.parseInt(m.getDevice()),speed);
-				} catch (NumberFormatException e) {
-					_log.error(m.getDevice() + " is not a valid IP232Port port number.");
-					throw e;
-				} catch (PortException e) {
-					_log.error(m.getDevice() + " returned error during initialization.",e);
-					throw e;
-				}
-			} else {
-				if(m.getDevice()!= null && !m.getDevice().equals("")) {
-					try {
-						port=new RS232DCEPort(m.getDevice(),speed);
-					} catch (Exception e) {
-						_log.error(m.getDevice() + " returned error during initialization.",e);
-						throw e;
-					}
-				} else {
-					_log.error("RS232 device not specified.");
-					throw new NullPointerException();
-				}
-			}
+			port=getPort(template,m);
 			if(port != null) {
 				cfg=new ModemConfig();
 				//cfg.setDCESpeed(m.getSpeed());
-				msgStore=new MessageStore(_defMsgStore);
-				addMessages(msgStore,m);
+				actionList=new EventActionList(_defActionList);
+				addActions(actionList,m);
 				phoneBook=new Properties(defPhoneBook);
 				if(m.getPhoneBook()!= null) 
 					TCPSerial.buildPhoneBook(m.getPhoneBook(),phoneBook);
-				modem=new ExtModemCore(port,cfg, msgStore, phoneBook);
+				modem=new ExtModemCore(port,cfg, factory, phoneBook);
 				modem.setDCDInverted(
 									(template!= null && template.getInvertDCD()!= null?template.getInvertDCD().booleanValue():false) 
 									|| (m.getInvertDCD()!= null?m.getInvertDCD().booleanValue():false)
@@ -167,7 +124,11 @@ public class ModemPoolThread extends Thread {
 					_log.error("Could not set modem initialization");
 					throw e;
 				}
+				// TODO need to fix the cast below...
+				if(m.getCaptiveModem()!= null)
+					modem.setInternalLine((LinePort)getPort(template,m.getCaptiveModem()));
 				modem.setOutput(true);
+				modem.addEventListener(new ExtModemEventListener(actionList));
 				_alModems.add(modem);
 				port=null;
 			}
@@ -177,11 +138,63 @@ public class ModemPoolThread extends Thread {
 		
 	}
 	
+	public DCEPort getPort(ModemInfo template, ModemInfo m) throws PortException, Exception {
+		String type=m.getType().toLowerCase();
+		int speed=38400;
+		DCEPort port;
+		
+		if(template.getSpeed()!= null) {
+			speed=template.getSpeed().intValue();
+		}
+		if(m.getSpeed()!= null) {
+			speed=m.getSpeed().intValue();
+		}
+		if(type.equals("remote232")) {
+			try {
+				HostAddress addy=new HostAddress(m.getDevice());
+				try {
+					port=new RemoteDCEPort(addy.getHost(),addy.getPort(), speed);
+				} catch (PortException e) {
+					_log.error(m.getDevice() + " returned error during initialization.",e);
+					throw e;
+				}
+			} catch (NumberFormatException e) {
+				_log.error(m.getDevice() + " is invalid.");
+				throw e;
+			}
+				
+				
+		} else if(type.equals("ip232")) {
+			try {
+				port=new IP232Port(Integer.parseInt(m.getDevice()),speed);
+			} catch (NumberFormatException e) {
+				_log.error(m.getDevice() + " is not a valid IP232Port port number.");
+				throw e;
+			} catch (PortException e) {
+				_log.error(m.getDevice() + " returned error during initialization.",e);
+				throw e;
+			}
+		} else {
+			if(m.getDevice()!= null && !m.getDevice().equals("")) {
+				try {
+					port=new RS232DCEPort(m.getDevice(),speed);
+				} catch (Exception e) {
+					_log.error(m.getDevice() + " returned error during initialization.",e);
+					throw e;
+				}
+			} else {
+				_log.error("RS232 device not specified.");
+				throw new NullPointerException();
+			}
+		}
+		return port;
+	}
+	
 	public void run() {
 		ServerSocket listenSock;
 		Socket serverSock;
 		ModemCore modem;
-		Message msg;
+		FileEventAction msg;
 		TCPPort ipCall;
 			
 		// listen for incoming connections.
@@ -209,12 +222,11 @@ public class ModemPoolThread extends Thread {
 				if(modem==null) {
 					OutputStream os=ipCall.getOutputStream();
 
-					msg=_defMsgStore.getMessage(Message.DIR_REMOTE,Message.ACTION_BUSY);
-					if(msg==null) {
-						os.write("BUSY\r\n".getBytes());
-					} else {
-						Utility.writeFile(os,msg.getLocation());
-					}
+					_defActionList.execute(new ModemEvent(this,ModemEvent.RESPONSE_BUSY),EventActionList.DIR_REMOTE);
+					// TODO fix this
+					//if(msg==null) {
+					//	os.write("BUSY\r\n".getBytes());
+					//}
 					// close modem
 					ipCall.setDTR(false);
 				}
@@ -224,29 +236,65 @@ public class ModemPoolThread extends Thread {
 		}
 	}
 	
-	public void addMessages(MessageStore store, ModemInfo modem) {
-		MessageInfo msg;
-		int dir,action=0;
+	public void addActions(EventActionList store, ModemInfo modem) {
+		EventActionInfo info;
+		EventAction ea=null;
+		int dir,action=0, iter;
+		boolean asynch;
+		String type;
 		
-		for(int j=0,len=modem.getMessageSize();j<len;j++) {
-			msg=modem.getMessage(j);
-			if(msg.getDirection()==DirectionList.VALUE_local) {
-				dir=Message.DIR_LOCAL;
+		
+		for(int j=0,len=modem.getEventActionSize();j<len;j++) {
+			info=modem.getEventAction(j);
+			if(info.getDirection()==DirectionList.VALUE_local) {
+				dir=EventActionList.DIR_LOCAL;
 			} else {
-				dir=Message.DIR_REMOTE;
+				dir=EventActionList.DIR_REMOTE;
 			}
-			if(msg.getAction()==ActionList.VALUE_answer) {
-				action=Message.ACTION_ANSWER;
-			} else if(msg.getAction()==ActionList.VALUE_busy) {
-				action=Message.ACTION_BUSY;
-			} else if(msg.getAction()==ActionList.VALUE_connect) {
-				action=Message.ACTION_CALL;
-			} else if(msg.getAction()==ActionList.VALUE_inactivity) {
-				action=Message.ACTION_INACTIVITY;
-			} else if(msg.getAction()==ActionList.VALUE_no_answer) {
-				action=Message.ACTION_NO_ANSWER;
+			if(info.getAction().equals(ActionList.VALUE_pre_answer)) {
+				action=ModemEvent.PRE_ANSWER;
+			} else if(info.getAction().equals(ActionList.VALUE_answer)) {
+				action=ModemEvent.ANSWER;
+			} else if(info.getAction().equals(ActionList.VALUE_busy)) {
+				action=ModemEvent.RESPONSE_BUSY;
+			} else if(info.getAction().equals(ActionList.VALUE_pre_connect)) {
+				action=ModemEvent.PRE_CONNECT;
+			} else if(info.getAction().equals(ActionList.VALUE_connect)) {
+				action=ModemEvent.CONNECT;
+			} else if(info.getAction().equals(ActionList.VALUE_inactivity)) {
+				// TODO add this code
+				//action=ModemEvent.INACTIVITY;
+			} else if(info.getAction().equals(ActionList.VALUE_no_answer)) {
+				action=ModemEvent.RESPONSE_NO_ANSWER;
+			} else if(info.getAction().equals(ActionList.VALUE_dial)) {
+				action=ModemEvent.DIAL;
+			} else if(info.getAction().equals(ActionList.VALUE_hangup)) {
+				action=ModemEvent.HANGUP;
 			}
-			store.addMessage(new Message(dir,action,new File(msg.getLocation())));
+			if(info.getIterations()!= null)
+				iter=info.getIterations().intValue();
+			else
+				iter=1;
+			if(info.getAsynchronous()!= null)
+				asynch=info.getAsynchronous().booleanValue();
+			else
+				asynch=false;
+			if(info.getContent()!= null) {
+				if(info.getType().equals("file")) {
+					ea=new FileEventAction(dir,action,info.getContent(),iter,asynch);
+				} else if(info.getType().equals("java")) {
+					ea=new JavaEventAction(dir,action,info.getContent(),iter,asynch);
+				} else if(info.getType().equals("exec")) {
+					ea=new ExecEventAction(dir,action,info.getContent(),iter,asynch);
+				} else if(info.getType().equals("url")) {
+					ea=new URLEventAction(dir,action,info.getContent(),iter,asynch);
+				} else if(info.getType().equals("audio")) {
+					ea=new AudioEventAction(dir,action,info.getContent(),iter,asynch);
+				}
+			}
+			if(ea!=null)
+				store.add(ea);
+			ea=null;
 		}
 	}
 }

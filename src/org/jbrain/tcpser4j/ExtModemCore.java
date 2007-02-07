@@ -23,39 +23,24 @@
 package org.jbrain.tcpser4j;
 
 import java.io.*;
-import java.net.Socket;
 import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.jbrain.hayes.*;
 import org.jbrain.hayes.cmd.*;
-import org.jbrain.util.Utility;
 
 public class ExtModemCore extends ModemCore {
 
+	private LinePort _captivePort;
 	private Properties _phoneBook;
 	private static Logger _log=Logger.getLogger(ExtModemCore.class);
-	private MessageStore _messages=null;
 
-	public ExtModemCore(DCEPort dcePort,ModemConfig cfg, MessageStore messages, Properties phoneBook) {
-		super(dcePort,cfg);
-		if(messages != null)
-			_messages=messages;
-		else
-			_messages=new MessageStore();
+	public ExtModemCore(DCEPort dcePort,ModemConfig cfg, LinePortFactory factory, Properties phoneBook) {
+		super(dcePort,cfg,factory);
 		if(phoneBook!=null)
 			_phoneBook=phoneBook;
 		else
 			_phoneBook=new Properties();		
-	}
-	
-	public CommandResponse answer() throws PortException {
-		CommandResponse response=null;
-
-		response = super.answer();
-		writeFile(Message.DIR_LOCAL,Message.ACTION_ANSWER);
-		writeFile(Message.DIR_REMOTE,Message.ACTION_ANSWER);
-		return response;
 	}
 	
 	public CommandResponse dial(DialCommand cmd) throws PortException {
@@ -76,44 +61,45 @@ public class ExtModemCore extends ModemCore {
 		} else {
 			dialno=cmd;
 		}
-		response = super.dial(dialno);
-		if(response.getResponse()==ResponseMessage.OK) {
-			writeFile(Message.DIR_LOCAL,Message.ACTION_CALL);
-			writeFile(Message.DIR_REMOTE,Message.ACTION_CALL);
-		} else if(response.getResponse()==ResponseMessage.NO_ANSWER)
-			writeFile(Message.DIR_LOCAL,Message.ACTION_NO_ANSWER);
-		else if(response.getResponse()==ResponseMessage.BUSY)
-			writeFile(Message.DIR_LOCAL,Message.ACTION_BUSY);
+		return super.dial(dialno);
+	}
+	
+
+	public CommandResponse hangup() {
+		CommandResponse response=super.hangup();
+		if(_captivePort!= null) {
+			try {
+				setLinePort(_captivePort);
+			} catch (PortException e) {
+				_log.error("Could not set CaptivePort");
+			}
+		}
 		return response;
 	}
 	
 
-	/**
-	 * @param i
-	 * @param j
-	 */
-	private void writeFile(int i, int j) {
-		Message msg=_messages.getMessage(i,j);
-		OutputStream os=null;
-		
-		if(msg!= null) {
-			try {
-				if(i==Message.DIR_LOCAL) {
-					os=this.getDCEPort().getOutputStream();
-				} else if (getLinePort() != null){
-					os=this.getLinePort().getOutputStream();
-				}
-				if(os!=null) {
-					Utility.writeFile(os,msg.getLocation());
-				}
-			} catch (IOException e) {
-				_log.error("Encountered exception while trying to write message " + msg.getLocation().getName());
-			}
-				
+	public boolean acceptCall(LinePort call) throws PortException {
+		if(getLinePort()==null || getLinePort()==_captivePort) {
+			// set port to null and go on.
+			setLinePort(null);
+			return super.acceptCall(call);
 		}
+		return false;
 	}
-
-	public void setMessageStore(MessageStore store) {
-		_messages=store;
+	
+	/**
+	 * @param port
+	 */
+	public void setInternalLine(LinePort port) throws PortException {
+		// should set modem up here.
+		_captivePort=port;
+		try {
+			_captivePort.getOutputStream().write("ATE0X0V0".getBytes());
+			if(super.getLinePort()==null) {
+				setLinePort(port);
+			}
+		} catch (IOException e) {
+			throw new PortException("Could not configure captive modem",e);
+		}
 	}
 }

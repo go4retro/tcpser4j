@@ -40,6 +40,7 @@ public class IP232Port extends Thread implements DCEPort {
 	private ServerSocket _listenSock;
 	private CheckedOutputStream _os= new CheckedOutputStream();
 	private boolean _bDCD=false;
+	private boolean _bDTR=false;
 
 	/**
 	 * 
@@ -70,6 +71,7 @@ public class IP232Port extends Thread implements DCEPort {
 					socket=_listenSock.accept();
 					_os.setOutputStream(socket.getOutputStream());
 					is=socket.getInputStream();
+					setDTR(true);
 					while((len=is.read(data))>-1) {
 						pos.write(data,0,len);
 						sendEvent(new DCEEvent(this,DCEEvent.DATA_AVAILABLE,false,true));
@@ -78,7 +80,7 @@ public class IP232Port extends Thread implements DCEPort {
 					socket=null;
 					_os.setOutputStream(null);
 					// bring DTR low
-					sendEvent(new DCEEvent(this,DCEEvent.DTR,true,false));
+					setDTR(false);
 				} catch (IOException e) {
 					_log.error(e);
 				}
@@ -87,6 +89,16 @@ public class IP232Port extends Thread implements DCEPort {
 			_log.fatal("PipedInputStream creation failed",e);
 		}
 		
+	}
+
+	/**
+	 * @param b
+	 */
+	private void setDTR(boolean b) {
+		if(b != _bDTR) {
+			sendEvent(new DCEEvent(this,DCEEvent.DTR,_bDTR,b));
+		}
+		_bDTR=b;
 	}
 
 	/* (non-Javadoc)
@@ -101,7 +113,7 @@ public class IP232Port extends Thread implements DCEPort {
 	 * @see org.jbrain.hayes.DCEPort#isDTR()
 	 */
 	public boolean isDTR() {
-		return false;
+		return _bDTR;
 	}
 
 	/* (non-Javadoc)

@@ -13,7 +13,7 @@ package org.jbrain.tcpser4j.binding;
 public class ModemInfo implements java.io.Serializable {
     private static final String sObjName="ModemInfo";
     private java.util.ArrayList _oInitialization=new java.util.ArrayList();
-    private java.util.ArrayList _oMessage=new java.util.ArrayList();
+    private java.util.ArrayList _oEventAction=new java.util.ArrayList();
     private PhoneBook _oPhoneBook=null;
     private ModemInfo _oCaptiveModem=null;
     private String _oType=null;
@@ -58,24 +58,24 @@ public class ModemInfo implements java.io.Serializable {
         _oInitialization.add(idx,o);
     }
 
-    public MessageInfo getMessage(int idx) {
-        return (MessageInfo)_oMessage.get(idx);
+    public EventActionInfo getEventAction(int idx) {
+        return (EventActionInfo)_oEventAction.get(idx);
     }
 
-    public java.util.ArrayList getMessageList() {
-        return _oMessage;
+    public java.util.ArrayList getEventActionList() {
+        return _oEventAction;
     }
 
-    public int getMessageSize() {
-        return _oMessage.size();
+    public int getEventActionSize() {
+        return _oEventAction.size();
     }
 
-    public void addMessage(MessageInfo o) {
-        _oMessage.add(o);
+    public void addEventAction(EventActionInfo o) {
+        _oEventAction.add(o);
     }
 
-    public void setMessage(int idx, MessageInfo o) {
-        _oMessage.add(idx,o);
+    public void setEventAction(int idx, EventActionInfo o) {
+        _oEventAction.add(idx,o);
     }
 
     public PhoneBook getPhoneBook() {
@@ -181,8 +181,8 @@ public class ModemInfo implements java.io.Serializable {
             name = node.getName();
             if (name.equals("Initialization"))
                 addInitialization(node.getTextTrim());
-            if (name.equals("Message"))
-                addMessage(new MessageInfo(node));
+            if (name.equals("EventAction"))
+                addEventAction(new EventActionInfo(node));
             if (name.equals("PhoneBook"))
                 setPhoneBook(new PhoneBook(node));
             if (name.equals("CaptiveModem"))
@@ -211,8 +211,8 @@ public class ModemInfo implements java.io.Serializable {
 
         for(int idx = 0,size = getInitializationSize();idx<size;idx++)
             el.addElement("Initialization").addText(getInitialization(idx));
-        for(int idx = 0,size = getMessageSize();idx<size;idx++)
-            el.add(getMessage(idx).writeXML("Message"));
+        for(int idx = 0,size = getEventActionSize();idx<size;idx++)
+            el.add(getEventAction(idx).writeXML("EventAction"));
         if(getPhoneBook() != null)
             el.add(getPhoneBook().writeXML("PhoneBook"));
         if(getCaptiveModem() != null)

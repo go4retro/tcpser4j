@@ -22,8 +22,6 @@
 
 package org.jbrain.hayes;
 
-import java.io.*;
-
 public interface LinePort extends ModemPort {
 
 	/**

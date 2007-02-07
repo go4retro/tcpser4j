@@ -29,7 +29,6 @@ import java.util.*;
 import org.apache.log4j.*;
 
 import org.jbrain.hayes.*;
-import org.jbrain.hayes.cmd.DialCommand;
 import org.jbrain.io.nvt.*;
 
 public class TCPPort extends Thread implements LinePort {
@@ -115,7 +114,6 @@ public class TCPPort extends Thread implements LinePort {
 			throw new PortException("IO Error",e);
 		}
 		setDaemon(true);
-		_bRunning=true;
 		//start();
 	}
 
@@ -124,6 +122,7 @@ public class TCPPort extends Thread implements LinePort {
 		byte[] data=new byte[1024];
 		int len=0;
 
+		_bRunning=true;
 		try {
 			is=_sock.getInputStream();
 			len=is.read();
@@ -176,7 +175,8 @@ public class TCPPort extends Thread implements LinePort {
 		if(_bRunning != b) {
 			setDSR(b);
 		}
-		if(_bRunning) {
+		// if we are currently running or never started
+		if(_bRunning || !this.isAlive()) {
 			if(_ringer!= null){
 				// turn off ringer.
 				_ringer.cancel();
@@ -219,7 +219,7 @@ public class TCPPort extends Thread implements LinePort {
 	 */
 	public void addEventListener(LineEventListener lsnr) throws TooManyListenersException {
 		_listeners.add(lsnr);
-		if(!_bRunning)
+		if(!this.isAlive())
 			start();
 	}
 

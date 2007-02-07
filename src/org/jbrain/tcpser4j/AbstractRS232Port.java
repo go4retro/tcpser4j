@@ -22,8 +22,6 @@
 
 package org.jbrain.tcpser4j;
 
-import org.jbrain.hayes.*;
-
 import org.apache.log4j.*;
 
 import java.io.*;

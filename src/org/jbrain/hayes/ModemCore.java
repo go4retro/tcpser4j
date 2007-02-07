@@ -23,12 +23,15 @@
 package org.jbrain.hayes;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.TooManyListenersException;
 
 import org.apache.log4j.*;
 import org.jbrain.hayes.cmd.*;
 import org.jbrain.util.*;
 
 public abstract class ModemCore {
+	private LinePortFactory _factory;
 	private int _iRings=0;
 	private int _iConnDir;
 	private static final int CONNDIR_NONE=0;
@@ -66,6 +69,8 @@ public abstract class ModemCore {
 	private InputStream _isDCE;
 	private OutputStream _osDCE;
 	
+	private ArrayList _listeners=new ArrayList();
+	
 	private LineEventListener _lineEventListener=new LineEventListener() {
 		public void lineEvent(LineEvent event) {
 			ModemCore.this.handleLineEvent(event);
@@ -78,8 +83,9 @@ public abstract class ModemCore {
 		}
 	};
 
-	public ModemCore(DCEPort port, ModemConfig cfg) {
+	public ModemCore(DCEPort port, ModemConfig cfg, LinePortFactory f) {
 		_dcePort=port;
+		_factory=f;
 		try {
 			_isDCE=new LogInputStream(port.getInputStream(),"Serial In");
 			_osDCE=new LogOutputStream(port.getOutputStream(),"Serial Out");
@@ -92,7 +98,7 @@ public abstract class ModemCore {
 		reset();
 	}
 	
-	void handleDCEEvent(DCEEvent event) {
+	protected void handleDCEEvent(DCEEvent event) {
 		CommandResponse response;
 		
 		switch(event.getEventType()) {
@@ -111,7 +117,7 @@ public abstract class ModemCore {
 					// line terminated
 					switch(_cfg.getDTRAction()) {
 						case 1:
-							if(!inCommandMode()) {
+							if(!isCommandMode()) {
 								setCommandMode(true);
 								sendResponse(ResponseMessage.OK,"DTR triggered switch to command mode");
 							}
@@ -135,13 +141,13 @@ public abstract class ModemCore {
 		}
 	}
 
-	void handleLineEvent(LineEvent event) {
+	protected void handleLineEvent(LineEvent event) {
 		switch(event.getEventType()) {
 			case LineEvent.DATA_AVAILABLE:
 				try {
 					// read data
 					int len=_isLine.read(_lineData);
-					if(!inCommandMode()) {
+					if(!isCommandMode()) {
 						// write to dce if in data mode.
 						_osDCE.write(_lineData,0,len);
 					}
@@ -153,6 +159,7 @@ public abstract class ModemCore {
 			case LineEvent.RI:
 				if(event.getNewValue()) {
 					// RRRIIIINNNGGG!
+					fireEvent(new ModemEvent(this,ModemEvent.RING));
 					sendResponse(ResponseMessage.RING,"");
 					_iRings++;
 					if(_cfg.getRegister(0) != 0 && _cfg.getRegister(0) == _iRings) {
@@ -168,6 +175,7 @@ public abstract class ModemCore {
 			case LineEvent.CD:
 				if(!event.getNewValue()) {
 					// line terminated
+					hangup();
 					sendResponse(hangup().getResponse(),"Carrier Lost");
 				}
 				break;
@@ -240,11 +248,12 @@ public abstract class ModemCore {
 	/**
 	 * @return
 	 */
-	private int getConnDirection() {
+	public int getConnDirection() {
 		return _iConnDir;
 	}
 
 	public CommandResponse hangup() {
+		fireEvent(new ModemEvent(this,ModemEvent.HANGUP));
 		_dcePort.setDCD(false);
 		setConnDirection(CONNDIR_NONE);
 		setOffHook(false);
@@ -277,7 +286,7 @@ public abstract class ModemCore {
 	/**
 	 * @param CONNDIR_NONE
 	 */
-	private void setConnDirection(int i) {
+	public void setConnDirection(int i) {
 		_iConnDir=i;
 		
 	}
@@ -285,7 +294,7 @@ public abstract class ModemCore {
 	/**
 	 * @param cmdline
 	 */
-	private void execCmdLine(CommandTokenizer cmdline) {
+	protected void execCmdLine(CommandTokenizer cmdline) {
 		Command cmd;
 		CommandResponse resp;
 		boolean bDone=false;
@@ -316,7 +325,7 @@ public abstract class ModemCore {
 		return _bOffHook;
 	}
 	
-	public boolean inCommandMode() {
+	public boolean isCommandMode() {
 		return _bCmdMode;
 	}
 	
@@ -325,6 +334,7 @@ public abstract class ModemCore {
 	}
 	
 	public CommandResponse answer() throws PortException {
+		fireEvent(new ModemEvent(this,ModemEvent.PRE_ANSWER));
 		setOffHook(true);
 		if(getLinePort() != null) {
 			sendResponse(ResponseMessage.getConnectResponse(getSpeed(),_cfg.getResponseLevel()),"");
@@ -333,13 +343,14 @@ public abstract class ModemCore {
 		setCommandMode(false);
 		getDCEPort().setDCD(true);
 		setConnDirection(CONNDIR_INCOMING);
+		fireEvent(new ModemEvent(this,ModemEvent.ANSWER));
 		return CommandResponse.OK;
 	}
 
 	/**
 	 * @return
 	 */
-	private int getSpeed() {
+	public int getSpeed() {
 		// if line active, get speed from it, else from DCE.  
 		int speed;
 		if(getLinePort() != null && getLinePort().getSpeed() != ModemPort.BPS_UNKNOWN) {
@@ -353,15 +364,11 @@ public abstract class ModemCore {
 	public boolean acceptCall(LinePort call) throws PortException {
 		_iRings=0;
 		boolean rc=false;
+		// can;t check for DTR, as it doesn;t work right on COM DCE ports.
+		//if(this.getDCEPort().isDTR() && !isOffHook() && getLinePort()== null) {
 		if(!isOffHook() && getLinePort()== null) {
 			rc=true;
 			setLinePort(call);
-			try {
-				getLinePort().addEventListener(_lineEventListener);
-			} catch (java.util.TooManyListenersException e) {
-				_log.error(e);
-				throw new PortException("Event listener setup failed",e);
-			}
 		}
 		return rc;
 	}
@@ -373,27 +380,28 @@ public abstract class ModemCore {
 		setOffHook(true);
 		if(cmd.getData().length() != 0) {
 			try {
-				setLinePort(LinePortFactory.createLinePort(cmd));
-				try {
-					getLinePort().addEventListener(_lineEventListener);
-				} catch (java.util.TooManyListenersException e) {
-					_log.error(e);	
-					throw new PortException("Event listener setup failed",e);
-				}
+				fireEvent(new ModemEvent(this,ModemEvent.DIAL));
+				setLinePort(_factory.createLinePort(cmd));
 				// go to data mode.
 				setDCD(true);
 				getLinePort().setDTR(true);
+				fireEvent(new ModemEvent(this,ModemEvent.PRE_CONNECT));
 				sendResponse(ResponseMessage.getConnectResponse(getSpeed(),_cfg.getResponseLevel()),"");
 				setCommandMode(false);
 				setConnDirection(CONNDIR_OUTGOING);
+				fireEvent(new ModemEvent(this,ModemEvent.CONNECT));
 				return CommandResponse.OK;
 			} catch (LineNotAnsweringException e) {
+				setOffHook(false);
+				fireEvent(new ModemEvent(this,ModemEvent.RESPONSE_NO_ANSWER));
 				return new CommandResponse(ResponseMessage.NO_ANSWER,e.getMessage());
 			} catch (LineBusyException e) {
 				setOffHook(false);
+				fireEvent(new ModemEvent(this,ModemEvent.RESPONSE_BUSY));
 				return new CommandResponse(ResponseMessage.BUSY,e.getMessage());
 			} catch (PortException e) {
 				setOffHook(false);
+				fireEvent(new ModemEvent(this,ModemEvent.RESPONSE_ERROR));
 				_log.error(e);
 				throw e;	
 			}
@@ -408,6 +416,12 @@ public abstract class ModemCore {
 	 * @param b
 	 */
 	public void setCommandMode(boolean b) {
+		if(_bCmdMode != b) {
+			if(b)
+				fireEvent(new ModemEvent(this,ModemEvent.CMD_MODE));
+			else
+				fireEvent(new ModemEvent(this,ModemEvent.DATA_MODE));
+		}
 		_bCmdMode=b;
 		synchronized(_timer) {
 			_timer.interrupt();
@@ -432,7 +446,7 @@ public abstract class ModemCore {
 	/**
 	 * 
 	 */
-	protected DCEPort getDCEPort() {
+	public DCEPort getDCEPort() {
 		return _dcePort;
 		
 	}
@@ -448,6 +462,12 @@ public abstract class ModemCore {
 	 * @param b
 	 */
 	public void setOffHook(boolean b) {
+		if(b!=_bOffHook) {
+			if(b)
+				fireEvent(new ModemEvent(this,ModemEvent.OFF_HOOK));
+			else
+				fireEvent(new ModemEvent(this,ModemEvent.ON_HOOK));
+		}
 		_bOffHook=b;
 	}
 
@@ -460,9 +480,13 @@ public abstract class ModemCore {
 			try {
 				_osLine=new LogOutputStream(port.getOutputStream(),"Line Out");
 				_isLine=new LogInputStream(port.getInputStream(),"Line In");
+				port.addEventListener(_lineEventListener);
 			} catch (IOException e) {
 				_log.fatal(e);
 				throw new PortException("IO Error",e);
+			} catch (java.util.TooManyListenersException e) {
+				_log.error(e);
+				throw new PortException("Event listener setup failed",e);
 			}
 		} else {
 			_osLine=null;
@@ -470,7 +494,7 @@ public abstract class ModemCore {
 		}
 	}
 
-	protected LinePort getLinePort() {
+	public LinePort getLinePort() {
 		return _linePort;
 	}
 
@@ -478,7 +502,7 @@ public abstract class ModemCore {
 		// emulation of some weird behavior.  All is great if verbose is on, but
 		// off changes the rules completely.
 		StringBuffer sb=new StringBuffer();
-		if(!_cfg.isQuiet() && inCommandMode()) {
+		if(!_cfg.isQuiet() && isCommandMode()) {
 			if(_cfg.isVerbose()) {
 				sb.append(message.getText(_cfg.getResponseLevel()));
 				if(_cfg.getResponseLevel()== 99 && text != null && !text.equals("")) {
@@ -508,7 +532,7 @@ public abstract class ModemCore {
 	 * @param string
 	 */
 	public void sendResponse(String string) {
-		if(!_cfg.isQuiet() && inCommandMode() && _bOutput) {
+		if(!_cfg.isQuiet() && isCommandMode() && _bOutput) {
 			try {
 				_log.debug("Sending response data: " + string);
 				// crlf
@@ -532,7 +556,7 @@ public abstract class ModemCore {
 	/**
 	 * @return
 	 */
-	private boolean isDCDInverted() {
+	public boolean isDCDInverted() {
 		return _bDCDInverted;
 	}
 
@@ -589,6 +613,23 @@ public abstract class ModemCore {
 	public void setDCDInverted(boolean b) {
 		_bDCDInverted=b;
 	}
+	
+	protected void fireEvent(ModemEvent event) {
+		if(event != null && _listeners.size() > 0) {
+			for(int i=0,size=_listeners.size();i<size;i++) {
+				((ModemEventListener)_listeners.get(i)).handleEvent(event);
+			}
+		}
+	}
 
 	
+	public void addEventListener(ModemEventListener lsnr) throws TooManyListenersException {
+		_listeners.add(lsnr);
+	}
+
+	public void removeEventListener(ModemEventListener listener) {
+		if(_listeners.contains(listener)) {
+			_listeners.remove(listener);
+		}
+	}
 }

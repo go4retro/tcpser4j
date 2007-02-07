@@ -29,7 +29,6 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.jbrain.hayes.*;
 import org.jbrain.io.*;
-import org.jbrain.io.nvt.*;
 import org.jbrain.hayes.remote.*;
 
 public class RemoteDCEPort extends Thread implements DCEPort {

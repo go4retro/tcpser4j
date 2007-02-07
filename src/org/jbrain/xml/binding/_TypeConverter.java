@@ -2,7 +2,6 @@
 
 package org.jbrain.xml.binding;
 
-import org.dom4j.*;
 import java.text.*;
 import java.util.*;
 

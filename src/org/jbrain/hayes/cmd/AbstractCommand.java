@@ -22,8 +22,6 @@
 
 package org.jbrain.hayes.cmd;
 
-import org.jbrain.hayes.*;
-
 public abstract class AbstractCommand implements Command {
 	private char _cmd;
 	private char _type;

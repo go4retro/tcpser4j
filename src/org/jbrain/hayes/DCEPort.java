@@ -22,8 +22,6 @@
 
 package org.jbrain.hayes;
 
-import java.io.*;
-
 public interface DCEPort extends ModemPort {
 	void setDCD(boolean b);
 	boolean isDCD();

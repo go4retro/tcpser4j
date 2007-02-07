@@ -3,32 +3,43 @@
 package org.jbrain.tcpser4j.binding;
 
 /**
- * Title: MessageInfo
+ * Title: EventActionInfo
  * Description: Description of the class
  * @author SchemaBinder
  * @version 1.0
  * 
  */
 
-public class MessageInfo implements java.io.Serializable {
-    private static final String sObjName="MessageInfo";
+public class EventActionInfo implements java.io.Serializable {
+    private static final String sObjName="EventActionInfo";
+    private String _oType=null;
     private ActionList _oAction=null;
     private DirectionList _oDirection=null;
-    private String _oLocation=null;
+    private String _oContent=null;
+    private Integer _oIterations=null;
+    private Boolean _oAsynchronous=null;
 
 
-    public MessageInfo() {
+    public EventActionInfo() {
     }
 
      /**
-      * Title: MessageInfo
+      * Title: EventActionInfo
       * Description: Description of the constructor
       * 
       */
 
-    public MessageInfo(org.dom4j.Element el) throws Exception {
+    public EventActionInfo(org.dom4j.Element el) throws Exception {
         this();
         readXML(el);
+    }
+
+    public String getType() {
+        return _oType;
+    }
+
+    public void setType(String o) {
+        _oType = o;
     }
 
     public ActionList getAction() {
@@ -47,12 +58,28 @@ public class MessageInfo implements java.io.Serializable {
         _oDirection = o;
     }
 
-    public String getLocation() {
-        return _oLocation;
+    public String getContent() {
+        return _oContent;
     }
 
-    public void setLocation(String o) {
-        _oLocation = o;
+    public void setContent(String o) {
+        _oContent = o;
+    }
+
+    public Integer getIterations() {
+        return _oIterations;
+    }
+
+    public void setIterations(Integer o) {
+        _oIterations = o;
+    }
+
+    public Boolean getAsynchronous() {
+        return _oAsynchronous;
+    }
+
+    public void setAsynchronous(Boolean o) {
+        _oAsynchronous = o;
     }
 
 
@@ -76,12 +103,18 @@ public class MessageInfo implements java.io.Serializable {
         String name,value;
         org.dom4j.Element node=el;
 
+        if (el.attribute("type") != null)
+                setType(el.attribute("type").getText());
         if (el.attribute("action") != null)
                 setAction(ActionList.valueOf(el.attribute("action").getText()));
         if (el.attribute("direction") != null)
                 setDirection(DirectionList.valueOf(el.attribute("direction").getText()));
-        if (el.attribute("location") != null)
-                setLocation(el.attribute("location").getText());
+        if (el.attribute("content") != null)
+                setContent(el.attribute("content").getText());
+        if (el.attribute("iterations") != null)
+                setIterations(org.jbrain.xml.binding._TypeConverter.parseInteger(el.attribute("iterations").getText(), sObjName, "Iterations"));
+        if (el.attribute("asynchronous") != null)
+                setAsynchronous(org.jbrain.xml.binding._TypeConverter.parseBoolean(el.attribute("asynchronous").getText(), sObjName, "Asynchronous"));
     }
 
      /**
@@ -103,12 +136,18 @@ public class MessageInfo implements java.io.Serializable {
     public org.dom4j.Element writeXML(String name) throws Exception {
         org.dom4j.Element el = org.dom4j.DocumentHelper.createElement(name);
 
+        if(getType() != null)
+            el.addAttribute("type", getType());
         if(getAction() != null)
             el.addAttribute("action", getAction().toString());
         if(getDirection() != null)
             el.addAttribute("direction", getDirection().toString());
-        if(getLocation() != null)
-            el.addAttribute("location", getLocation());
+        if(getContent() != null)
+            el.addAttribute("content", getContent());
+        if(getIterations() != null)
+            el.addAttribute("iterations", org.jbrain.xml.binding._TypeConverter.buildInteger(getIterations()));
+        if(getAsynchronous() != null)
+            el.addAttribute("asynchronous", org.jbrain.xml.binding._TypeConverter.buildBoolean(getAsynchronous()));
         return el;
     }
 

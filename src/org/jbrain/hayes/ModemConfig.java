@@ -26,8 +26,6 @@ import gnu.io.SerialPort;
 
 import java.util.*;
 
-import org.jbrain.hayes.cmd.FlagCommand;
-
 public class ModemConfig {
 
 	private int _iDTRAction;

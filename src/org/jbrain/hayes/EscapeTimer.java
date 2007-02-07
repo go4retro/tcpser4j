@@ -58,7 +58,7 @@ public class EscapeTimer extends Thread {
 					_log.debug("Timed out after " + delay + "ms.");
 					// we timed out., check things
 					synchronized(_oMutex) {
-						if(_core.inCommandMode()) {
+						if(_core.isCommandMode()) {
 							// reset
 						} else {
 							switch(iState) {
@@ -93,7 +93,7 @@ public class EscapeTimer extends Thread {
 				_log.debug("Interrupted while waiting.");
 				synchronized(_oMutex) {
 				// we were notified, check flags 
-					if(_core.inCommandMode()) {
+					if(_core.isCommandMode()) {
 						// reset
 						_log.debug("Resetting.");
 						iState=STATE_NO_WAIT;

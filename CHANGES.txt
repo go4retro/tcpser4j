@@ -15,3 +15,12 @@ o Fixed small bug in TCPPort concerning closing connection
 o Added code to send BUSY or busy text file to remote side if all modems full
 o Added Chat Room Proof of Concept:  
 	org.jbrain.tcpser.extras.QueueChat <listen_port> <bbs_host> <bbs_port> [num_lines, defaults to 1]
+2.0rc4
+o If all lines were busy, was not closing connection
+o bug in TCPPort around closing connection when DSR went low
+o Added hangup to when LinePort fires DCD low event
+o Replaced Message construct with more more advanced EventAction
+o Added event handler to ModemCore
+o First steps of adding CaptiveModem support  (very alpha)
+o Added support for audio event actions
+o Added support for url event actions

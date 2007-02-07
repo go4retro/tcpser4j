@@ -126,10 +126,10 @@ public class Utility {
 		return sb.toString();
 	}
 	
-	public static void writeFile(OutputStream os, File f) throws FileNotFoundException, IOException {
+	public static void copyData(InputStream is, OutputStream os) throws IOException {
 		BufferedInputStream b;
 
-		b = new BufferedInputStream(new FileInputStream(f));
+		b = new BufferedInputStream(is);
 		byte data[] = new byte[1024];
 		int len;
 		

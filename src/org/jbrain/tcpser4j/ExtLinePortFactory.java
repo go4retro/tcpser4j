@@ -4,8 +4,9 @@
  * To change the template for this generated file go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-package org.jbrain.hayes;
+package org.jbrain.tcpser4j;
 
+import org.jbrain.hayes.*;
 import org.jbrain.hayes.cmd.DialCommand;
 
 /**
@@ -14,7 +15,15 @@ import org.jbrain.hayes.cmd.DialCommand;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public interface LinePortFactory {
-
-	LinePort createLinePort(DialCommand cmd)  throws LineNotAnsweringException, LineBusyException, PortException ;
+public class ExtLinePortFactory implements LinePortFactory {
+	LinePort _port=null;
+	
+	public void setCaptiveLine(LinePort port) {
+		_port=port;
+	}
+	
+	public LinePort createLinePort(DialCommand cmd) throws LineNotAnsweringException, LineBusyException, PortException {
+		
+		return new TCPPort(cmd.getData());
+	}
 }

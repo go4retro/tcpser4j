@@ -25,18 +25,56 @@
 		<TemplateModem>
 			<!--Default Initialization Parms-->
 			<!--<Initialization>s0=1</Initialization>-->
-			<!--Default Messages for various events-->
 			<!--
-			<Message action="answer" direction="local" location="local_answer.txt"/>
-			<Message action="connect" direction="local" location="local_connect.txt"/>
-			<Message action="busy" direction="local" location="local_busy.txt"/>
-			<Message action="inactivity" direction="local" location="local_inactivity.txt"/>
-			<Message action="no_answer" direction="local" location="local_non_answer.txt"/>
-			<Message action="answer" direction="remote" location="remote_answer.txt"/>
-			<Message action="connect" direction="remote" location="remote_connect.txt"/>
-			<Message action="busy" direction="remote" location="remote_busy.txt"/>
-			<Message action="inactivity" direction="remote" location="remote_inactivity.txt"/>
-			<Message action="no_answer" direction="remote" location="remote_non_answer.txt"/>
+				 Below are a few examples of EventActions, which replace simple Messages.
+				 o type can be one of: 
+				 	file				send a local text file to inbound or outbound connection
+				 	url				send the data from a url to inbound or outbound connection
+				 	audio			play a references WAV audio file
+				 	java			run a java class and send output to inbound or outbound connection (not implemented yet)
+				 	exec			run local app and send output to inbound or oubound connection (not fully implemented yet)
+				 o action can be one of:
+				 	pre_answer	before CONNECT line is sent
+				 	answer		after CONNECT line is sent
+				 	pre_connect	before CONNECT line is sent
+				 	connect		after CONNECT line is sent
+				 	dial			when the modem goes to dial.
+				 	hangup		when the modem hangs up
+				 	busy			busy
+				 	no_answer	no answer
+				 	off_hook		modem is taken off hook
+				 	on_hook		modem is placed on hook
+				 	cmd_mode	modem is placed into command mode
+				 	data_mode	modem is placed into data mode
+				 	ring			RING signal is asserted
+				 o direction can be one of:
+				 	local			send data to modem side
+				 	remote		send data to line side
+				 o content 
+				 	the URL, filename, application start, etc.  This can contain variables that are replaced
+				 	at time of execution.  For now, the following vars are supported:
+				 					${direction}	0 for none, 1 for outgoing, 2 for incoming
+				 					${speed}		speed of connection
+				 					${number}		for outgoing calls, this is the number/name dialed, incoming is last number
+				 					${number.method}	T for T, P for P, ' ' for default
+				 					
+				 	If you would like more, let me know.  They are pretty easy to add
+				 o iterations is how many times to repeat this.  Only implemented on audio at present
+				 o asynchronous is whether system should wait for completion.  Only implemented on audio at present
+				 	true
+				 	false
+				 
+				 All template Actions are processed before any specific modem actions.  
+				 
+				 You can have more than one EventAction per event.  They are processed in order listed in the file.
+			-->
+			<!--
+			<EventAction type="file" action="pre_answer" direction="local" content="local_answer.txt"/>
+			<EventAction type="url" action="answer" direction="remote" content="http://url.to.file"/>
+			<EventAction type="audio" action="off_hook" direction="local" content="dialtone.wav" iterations="1" asynchronous="false"/>
+			<EventAction type="audio" action="dial" direction="local" content="dtmf.wav" iterations="1" asynchronous="false"/>
+			<EventAction type="audio" action="pre_connect" direction="local" content="negotiate.wav" iterations="1" asynchronous="false"/>
+			<EventAction type="audio" action="connect" direction="local" content="ONLINE.wav" iterations="1" asynchronous="false"/>
 			-->
 			<!--Default Phone Book entries.  These are shared among the Pool-->
 			<!--
@@ -67,19 +105,7 @@
 				<Initialization>m3</Initialization>
 				<Initialization>s3=13</Initialization>
 			-->
-			<!-- Per modem event message files.  These override the defaults -->
-			<!--
-			<Message action="answer" direction="local" location="local_answer.txt"/>
-			<Message action="connect" direction="local" location="local_connect.txt"/>
-			<Message action="busy" direction="local" location="local_busy.txt"/>
-			<Message action="inactivity" direction="local" location="local_inactivity.txt"/>
-			<Message action="no_answer" direction="local" location="local_non_answer.txt"/>
-			<Message action="answer" direction="remote" location="remote_answer.txt"/>
-			<Message action="connect" direction="remote" location="remote_connect.txt"/>
-			<Message action="busy" direction="remote" location="remote_busy.txt"/>
-			<Message action="inactivity" direction="remote" location="remote_inactivity.txt"/>
-			<Message action="no_answer" direction="remote" location="remote_non_answer.txt"/>
-			-->
+			<!-- Per modem event message files.  See section in TemplateModem for more details -->
 			<!-- Per modem phone book.  This book is searched first, then the Pool, then the master book -->
 			<!--
 			<PhoneBook>

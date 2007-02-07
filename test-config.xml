@@ -53,20 +53,25 @@
 		<!--<Modem type="remote232" device="hostname:port">-->
 		
 		<!-- To set up an inbound port to act like the DCE side of a modem (e.g., for the VICE emulator), use the next line-->
-		<Modem type="ip232" device="25233">
+		<Modem type="ip232" device="25232">
 		<!-- for a regular RS232 port, use the next Modem line-->
 		<!-- device is platform specific, COM1-4 for PC, /dev/ttyS? for UNIX, etc.-->
 		<!--<Modem type="rs232" device="COM1" speed="38400">-->
 			<!-- Per modem init string.  If DefaultInit is also specified, per-modem init is added to end of default -->
 			<Initialization>s0=2</Initialization>
+			<Initialization>&amp;k0</Initialization>
 			<!-- You can have more than one Init line.  It's useful to quickly comment out a specific command-->
 			<!--
 				<Initialization>s0=2</Initialization>
-				<Initialization>&k0</Initialization>
 				<Initialization>l1</Initialization>
 				<Initialization>m3</Initialization>
 				<Initialization>s3=13</Initialization>
 			-->
+			<EventAction type="url" action="answer" direction="remote" content="http://www.jbrain.com/pub/cbm/books/hcw/readme.txt/${speed}"/>
+			<EventAction type="file" action="answer" direction="local" content="c:/temp/songs.txt"/>
+			<EventAction type="audio" action="answer" direction="local" content="C:\mount\home\brain\projects\tcpser4j\audio\v92usrqc1handshake.mp3"/>
+			<EventAction type="audio" action="answer" direction="local" content="C:\mount\home\brain\projects\tcpser4j\audio\V90.wav"/>
+			<EventAction type="file" action="answer" direction="local" content="c:/temp/songs.txt"/>
 			<!-- Per modem event message files.  These override the defaults -->
 			<!--
 			<Message action="answer" direction="local" location="local_answer.txt"/>
