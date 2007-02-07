@@ -1,0 +1,17 @@
+2.0alpha
+o Initial released version
+
+2.0rc1
+o Added some debugging statements
+o Made phone book case insensitive
+
+2.0rc2
+o Added support for more NVT options in telnet negotiation
+o Bad IP address caused ERROR, chaned to NO ANSWER
+o COnnection refused caused ERROR, changed to NO ANSWER
+o Could not set Response Level 99 for extended errors, changed.
+2.0rc3
+o Fixed small bug in TCPPort concerning closing connection
+o Added code to send BUSY or busy text file to remote side if all modems full
+o Added Chat Room Proof of Concept:  
+	org.jbrain.tcpser.extras.QueueChat <listen_port> <bbs_host> <bbs_port> [num_lines, defaults to 1]

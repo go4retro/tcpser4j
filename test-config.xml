@@ -51,18 +51,18 @@
 		     Also remember to run org.jbrain.tcpser4j.RS232Forwarder on remote server before running tcpser4j 
 		-->
 		<!--<Modem type="remote232" device="hostname:port">-->
+		
 		<!-- To set up an inbound port to act like the DCE side of a modem (e.g., for the VICE emulator), use the next line-->
-		<!--<Modem type="ip232" device="25232">-->
+		<Modem type="ip232" device="25233">
 		<!-- for a regular RS232 port, use the next Modem line-->
 		<!-- device is platform specific, COM1-4 for PC, /dev/ttyS? for UNIX, etc.-->
-		<Modem type="rs232" device="COM1" speed="38400">
+		<!--<Modem type="rs232" device="COM1" speed="38400">-->
 			<!-- Per modem init string.  If DefaultInit is also specified, per-modem init is added to end of default -->
 			<Initialization>s0=2</Initialization>
 			<!-- You can have more than one Init line.  It's useful to quickly comment out a specific command-->
-			<!--note that the ampersand is a special char in XML, so it needs to be escaped-->
 			<!--
 				<Initialization>s0=2</Initialization>
-				<Initialization>&amp;k0</Initialization>
+				<Initialization>&k0</Initialization>
 				<Initialization>l1</Initialization>
 				<Initialization>m3</Initialization>
 				<Initialization>s3=13</Initialization>

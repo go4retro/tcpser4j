@@ -125,5 +125,17 @@ public class Utility {
 			sb.append(" ");
 		return sb.toString();
 	}
+	
+	public static void writeFile(OutputStream os, File f) throws FileNotFoundException, IOException {
+		BufferedInputStream b;
+
+		b = new BufferedInputStream(new FileInputStream(f));
+		byte data[] = new byte[1024];
+		int len;
+		
+		while((len=b.read(data)) > -1) {
+			os.write(data,0,len);
+		}
+	}
 
 }

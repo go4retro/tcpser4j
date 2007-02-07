@@ -26,20 +26,21 @@ import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 import gnu.io.UnsupportedCommOperationException;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 
 import org.apache.log4j.*;
 import org.jbrain.hayes.*;
-import org.jbrain.net.HostAddress;
+import org.jbrain.net.*;
 import org.jbrain.tcpser4j.binding.*;
+import org.jbrain.util.*;
 
 public class ModemPoolThread extends Thread {
 	private static Logger _log=Logger.getLogger(ModemPoolThread.class);
 	private int _socketPort=0;
 	ArrayList _alModems=new ArrayList();
+	MessageStore _defMsgStore=new MessageStore();
 	
 	public ArrayList getModems() {
 		return _alModems;
@@ -60,7 +61,6 @@ public class ModemPoolThread extends Thread {
 		Line line;
 		
 		ModemInfo template;
-		MessageStore defMsgStore=new MessageStore();
 		Properties defPhoneBook=new Properties(masterPB); 
 
 		ModemInfo m;
@@ -83,7 +83,7 @@ public class ModemPoolThread extends Thread {
 		}
 		template=pool.getTemplateModem();
 		if(template!=null) {
-			addMessages(defMsgStore,template);
+			addMessages(_defMsgStore,template);
 			if(template.getPhoneBook()!= null)
 				TCPSerial.buildPhoneBook(template.getPhoneBook(),defPhoneBook);
 		}
@@ -138,7 +138,7 @@ public class ModemPoolThread extends Thread {
 			if(port != null) {
 				cfg=new ModemConfig();
 				//cfg.setDCESpeed(m.getSpeed());
-				msgStore=new MessageStore(defMsgStore);
+				msgStore=new MessageStore(_defMsgStore);
 				addMessages(msgStore,m);
 				phoneBook=new Properties(defPhoneBook);
 				if(m.getPhoneBook()!= null) 
@@ -181,13 +181,15 @@ public class ModemPoolThread extends Thread {
 		ServerSocket listenSock;
 		Socket serverSock;
 		ModemCore modem;
+		Message msg;
+		TCPPort ipCall;
 			
 		// listen for incoming connections.
 		try {
 			listenSock = new ServerSocket(_socketPort); 
 			while(true) {
 					
-				TCPPort ipCall=new TCPPort(listenSock.accept());
+				ipCall=new TCPPort(listenSock.accept());
 				modem=null;
 					
 				for(int i=0,size=_alModems.size();modem==null&& i<size;i++) {
@@ -205,8 +207,16 @@ public class ModemPoolThread extends Thread {
 						modem=null;
 				}
 				if(modem==null) {
-					// all modems are busy.
-					// print error.
+					OutputStream os=ipCall.getOutputStream();
+
+					msg=_defMsgStore.getMessage(Message.DIR_REMOTE,Message.ACTION_BUSY);
+					if(msg==null) {
+						os.write("BUSY\r\n".getBytes());
+					} else {
+						Utility.writeFile(os,msg.getLocation());
+					}
+					// close modem
+					ipCall.setDTR(false);
 				}
 			}
 		} catch (Exception e) {

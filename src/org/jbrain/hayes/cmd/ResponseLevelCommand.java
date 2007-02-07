@@ -36,6 +36,8 @@ public class ResponseLevelCommand extends FlagCommand {
 			case 2:
 			case 3:
 			case 4:
+			// this is added for extended error codes.
+			case 99:
 				core.getConfig().setResponseLevel(getLevel());
 				break;
 			default:

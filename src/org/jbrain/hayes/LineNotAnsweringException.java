@@ -33,4 +33,8 @@ public class LineNotAnsweringException extends PortException {
 	public LineNotAnsweringException(String error) {
 		super(error);
 	}
+
+	public LineNotAnsweringException(String error, Throwable e) {
+		super(error,e);
+	}
 }

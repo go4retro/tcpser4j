@@ -29,6 +29,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.jbrain.hayes.*;
 import org.jbrain.hayes.cmd.*;
+import org.jbrain.util.Utility;
 
 public class ExtModemCore extends ModemCore {
 
@@ -61,7 +62,7 @@ public class ExtModemCore extends ModemCore {
 		CommandResponse response=null;
 		DialCommand dialno;
 		
-		String alias=_phoneBook.getProperty(cmd.getData());
+		String alias=_phoneBook.getProperty(cmd.getData().trim().toLowerCase());
 		if(alias != null) {
 			// I found an alias, map in,
 			// this is rather nasty, but I can;t think of another way right now.
@@ -103,12 +104,7 @@ public class ExtModemCore extends ModemCore {
 					os=this.getLinePort().getOutputStream();
 				}
 				if(os!=null) {
-					BufferedInputStream b=new BufferedInputStream(new FileInputStream(msg.getLocation()));
-					byte data[] = new byte[1024];
-					int len;
-					while((len=b.read(data)) > -1) {
-						os.write(data,0,len);
-					}
+					Utility.writeFile(os,msg.getLocation());
 				}
 			} catch (IOException e) {
 				_log.error("Encountered exception while trying to write message " + msg.getLocation().getName());

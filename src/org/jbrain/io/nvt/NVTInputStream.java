@@ -24,27 +24,54 @@ package org.jbrain.io.nvt;
 
 import java.io.*;
 
-public class NVTInputStream extends InputStream {
-	public static final int IAC= 0xff;
-	private static final int DO=0xfd;
-	private static final int WONT=252;
-	private static final int WILL=0xfb;
-	private static final int DONT=254;
+import org.apache.log4j.*;
 
+public class NVTInputStream extends InputStream {
+	private static Logger _log=Logger.getLogger(NVTInputStream.class);
+
+	public static final int IAC= 255;
+	private static final int DO=253;
+	private static final int WONT=252;
+	private static final int WILL=251;
+	private static final int DONT=254;
+	private static final int SE=240;
+	private static final int NOP=241;
+	private static final int DM=242;
+	private static final int SB=250;
+
+	private static final int OPT_TRANSMIT_BINARY= 0;
+	private static final int OPT_ECHO= 1;
+	private static final int OPT_SUPPRESS_GO_AHEAD= 3;
+	private static final int OPT_STATUS= 5;
+	private static final int OPT_RCTE= 7;
+	private static final int OPT_TIMING_MARK= 6;
+	private static final int OPT_NAOCRD= 10;
+	private static final int OPT_TERMINAL_TYPE= 24;
+	private static final int OPT_NAWS= 31;
+	private static final int OPT_TERMINAL_SPEED= 32;
+	private static final int OPT_TOGGLE_FLOW_CONTROL= 33;
+	private static final int OPT_LINEMODE= 34;
+	private static final int OPT_X_DISPLAY_LOCATION= 35;
+	private static final int OPT_ENVIRON= 36;
+	private static final int OPT_NEW_ENVIRON= 39;
+	
 	private OutputStream _os;
 	private InputStream _is;
 	private byte[] _buffer;
 	private int _iPos;
+	private NVTConfig _config;
 	
-	public NVTInputStream(InputStream is,OutputStream os) {
+	
+	public NVTInputStream(InputStream is,OutputStream os, NVTConfig config) {
 		_is=is;
 		_os=os;
+		_config=config;
 		_buffer=new byte[1024];
 		_iPos=0;
 	}
 
-	public NVTInputStream(InputStream is,OutputStream os, boolean bCachedIAC) {
-		this(is,os);
+	public NVTInputStream(InputStream is,OutputStream os, NVTConfig config, boolean bCachedIAC) {
+		this(is,os,config);
 		_buffer[0]=(byte)IAC;
 		_iPos++;
 	}
@@ -65,37 +92,117 @@ public class NVTInputStream extends InputStream {
 	 * 
 	 */
 	private int parse() throws IOException {
+		boolean b;
 		int plen=0;
 		int i=0;
 		byte resp[]=new byte[3];
 		byte cmd,action,option;
 		boolean bDone=false;
+		
+		resp[0]=(byte)IAC;
 		while(!bDone && plen < _iPos) {
 			if(_buffer[plen]==(byte)IAC) {
 				// parse out a command
 				if((plen+1) < _iPos) {
-					action=_buffer[plen+1];;
+					action=_buffer[plen+1];
 					switch (action) {
 						case (byte)IAC:
 							_buffer[i++]=(byte)IAC;
 							plen+=2;							
 							break;
-						case (byte)DO:
+						case (byte)SB:
+							// subcommand
+							if(plen+4<_iPos) {
+								option=_buffer[plen+2];
+								if(_buffer[plen+3]==1) {
+									_log.debug("Received SB " + option);
+									// respond.
+									switch(option) {
+										case (byte)OPT_TERMINAL_TYPE:
+											resp[1]=(byte)SB;
+											resp[2]=(byte)option;
+											_os.write(resp);
+											_os.write(0);
+											_os.write(_config.getTerminalType().getBytes());
+											resp[1]=(byte)SE;
+											_os.write(resp,0,2);
+											_log.debug("Sent " + _config.getTerminalType());
+											break;
+									}
+									plen+=4;
+								} else {
+									// should read until IAC SE
+								}
+							} else {
+								bDone=true;
+							}
+							break;
+						case (byte)SE:
+							_log.debug("Received SE");
+							plen+=2;
+							break;							
+						case (byte)DONT:
+						case (byte)WONT:
 							if(plen+2<_iPos) {
 								option=_buffer[plen+2];
-								resp[0]=(byte)IAC;
-								resp[1]=(byte)WONT;
+								if(action==(byte)DONT) {
+									_log.debug("Received DONT " + option);
+									_log.debug("Sent WONT " + option);
+									resp[1]=(byte)WONT;
+								} else {
+									_log.debug("Received WONT " + option);
+									_log.debug("Sent DONT " + option);
+									resp[1]=(byte)DONT;
+								}
 								resp[2]=(byte)option;
 								_os.write(resp);
 								plen+=3;
-							} else
+							} else {
 								bDone=true;
+							}
 							break;
+							
+						case (byte)DO:
 						case (byte)WILL:
 							if(plen+2<_iPos) {
 								option=_buffer[plen+2];
-								resp[0]=(byte)IAC;
-								resp[1]=(byte)DONT;
+								switch(option) {
+									case (byte)OPT_TRANSMIT_BINARY:
+										b=_config.isTransmitBinary();
+										break;
+									case (byte)OPT_ECHO:
+										b=_config.isEcho();
+										break;
+									case (byte)OPT_SUPPRESS_GO_AHEAD:
+										b=_config.isSupressGoAhead();
+										break;
+									case (byte)OPT_TERMINAL_TYPE:
+										b=_config.getTerminalType()!=null;
+										break;
+									default:
+										b=false;
+										break;
+								}
+								if(action==(byte)DO) {
+									_log.debug("Received DO " + option);
+									
+									if(b) {
+										_log.debug("Sent WILL " + option);
+										resp[1]=(byte)WILL;
+									} else {
+										_log.debug("Sent WONT " + option);
+										resp[1]=(byte)WONT;
+									}
+								} else {
+									_log.debug("Received WILL " + option);
+									if(b) {
+										_log.debug("Sent DO " + option);
+										resp[1]=(byte)DO;
+									} else {
+										_log.debug("Sent DONT " + option);
+										resp[1]=(byte)DONT;
+									}
+								}
 								resp[2]=(byte)option;
 								_os.write(resp);
 								plen+=3;
@@ -103,7 +210,7 @@ public class NVTInputStream extends InputStream {
 								bDone=true;
 							break;
 						default:
-							System.out.println("Found this:" + action);
+							_log.error("Received this NVT Command: " + (action<0?action+256:action));
 							break;
 					}
 						
@@ -147,6 +254,7 @@ public class NVTInputStream extends InputStream {
 			// all data was NVT commands, grab some more.
 			return read(data,start,len);
 		} else {
+			// plen is how many chars in buffer now.
 			// get minimum
 			l=Math.min(Math.min(len,data.length-start),plen);
 			// copy to outbuf.

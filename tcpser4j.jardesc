@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jardesc>
-    <jar path="C:/mount/home/brain/projects/tcpser4j/lib/tcpser4j-2.0alpha.jar"/>
+    <jar path="C:/mount/home/brain/projects/tcpser4j/lib/tcpser4j-2.0rc3.jar"/>
     <options buildIfNeeded="true" compress="true"
         descriptionLocation="/tcpser4j/tcpser4j.jardesc"
         exportErrors="true" exportWarnings="true" overwrite="false"

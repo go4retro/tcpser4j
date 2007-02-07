@@ -39,7 +39,7 @@ public class TCPSerial extends Thread {
 		Entry e;
 		for(int i=0,size=pb.getEntrySize();i<size;i++) {
 			e=pb.getEntry(i);
-			p.setProperty(e.getNumber(),e.getValue());
+			p.setProperty(e.getNumber().trim().toLowerCase(),e.getValue());
 		}
 	}
 

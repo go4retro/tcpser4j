@@ -43,6 +43,7 @@ public class TCPPort extends Thread implements LinePort {
 	private OutputStream _os;
 	private boolean _bRunning=false;
 	private Timer _ringer;
+	
 	private class RingTask extends TimerTask {
 		public void run() {
 			TCPPort.this.sendEvent(new LineEvent(TCPPort.this,LineEvent.RI,false,true));
@@ -80,8 +81,13 @@ public class TCPPort extends Thread implements LinePort {
 			_pis=new PipedInputStream(_pos);
 			_os=_sock.getOutputStream();
 		} catch (UnknownHostException e) {
+			// what should we throw for a bad number?
 			_log.error(e);
-			throw new PortException("Host " + host + " unknown",e);
+			throw new LineNotAnsweringException("Host " + host + " unknown",e);
+		} catch (ConnectException e) {
+			// what should we throw for a Connection refused?
+			_log.error(e);
+			throw new LineNotAnsweringException("Connnection to " + host + " refused",e);
 		} catch (IOException e) {
 			_log.error(e);
 			throw new PortException("IO Error",e);
@@ -109,12 +115,12 @@ public class TCPPort extends Thread implements LinePort {
 			throw new PortException("IO Error",e);
 		}
 		setDaemon(true);
+		_bRunning=true;
 		//start();
 	}
 
 	public void run() {
 		InputStream is;
-		_bRunning=true;
 		byte[] data=new byte[1024];
 		int len=0;
 
@@ -123,7 +129,7 @@ public class TCPPort extends Thread implements LinePort {
 			len=is.read();
 			if(len == 255) {
 				// telnet session
-				is=new NVTInputStream(is,_sock.getOutputStream(),true);
+				is=new NVTInputStream(is,_sock.getOutputStream(),new NVTConfig(),true);
 				_os=new NVTOutputStream(_os);
 				
 			} else if(len > -1) {

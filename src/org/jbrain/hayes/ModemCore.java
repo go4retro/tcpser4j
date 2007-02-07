@@ -388,10 +388,10 @@ public abstract class ModemCore {
 				setConnDirection(CONNDIR_OUTGOING);
 				return CommandResponse.OK;
 			} catch (LineNotAnsweringException e) {
-				return new CommandResponse(ResponseMessage.NO_ANSWER,"");
+				return new CommandResponse(ResponseMessage.NO_ANSWER,e.getMessage());
 			} catch (LineBusyException e) {
 				setOffHook(false);
-				return new CommandResponse(ResponseMessage.BUSY,"");
+				return new CommandResponse(ResponseMessage.BUSY,e.getMessage());
 			} catch (PortException e) {
 				setOffHook(false);
 				_log.error(e);
@@ -481,7 +481,7 @@ public abstract class ModemCore {
 		if(!_cfg.isQuiet() && inCommandMode()) {
 			if(_cfg.isVerbose()) {
 				sb.append(message.getText(_cfg.getResponseLevel()));
-				if(_cfg.getResponseLevel()== 99) {
+				if(_cfg.getResponseLevel()== 99 && text != null && !text.equals("")) {
 					// add text
 					sb.append(" (");
 					sb.append(text);
