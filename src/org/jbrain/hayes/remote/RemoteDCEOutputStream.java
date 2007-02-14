@@ -25,6 +25,7 @@ package org.jbrain.hayes.remote;
 import java.io.*;
 
 import org.jbrain.io.nvt.*;
+import org.jbrain.net.nvt.NVTOutputStream;
 
 public class RemoteDCEOutputStream extends NVTOutputStream {
 

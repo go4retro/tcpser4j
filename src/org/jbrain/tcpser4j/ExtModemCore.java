@@ -44,7 +44,6 @@ public class ExtModemCore extends ModemCore {
 	}
 	
 	public CommandResponse dial(DialCommand cmd) throws PortException {
-		CommandResponse response=null;
 		DialCommand dialno;
 		
 		String alias=_phoneBook.getProperty(cmd.getData().trim().toLowerCase());

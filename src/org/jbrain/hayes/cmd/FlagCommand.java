@@ -28,7 +28,6 @@ public abstract class FlagCommand extends AbstractCommand {
 	private int _iLevel=0;
 
 	public int parse(byte[] data, int iPos, int iLen) throws CommandException {
-		int level=0;
 		int start=iPos;
 		
 

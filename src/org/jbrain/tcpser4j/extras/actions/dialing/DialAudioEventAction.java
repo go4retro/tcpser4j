@@ -56,7 +56,6 @@ public class DialAudioEventAction extends AudioEventAction {
 		    String s = core.getLastNumber().getData();
 		    delay=core.getConfig().getRegister(11);
 		    int l = s.length();
-		    char c;
 		    for (int i = 0; i<l; i++) {
 		      	switch (Character.toLowerCase(s.charAt(i))) {
 			        case '0':

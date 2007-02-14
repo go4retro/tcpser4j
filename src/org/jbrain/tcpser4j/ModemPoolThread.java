@@ -60,14 +60,10 @@ public class ModemPoolThread extends Thread {
 		ModemInfo m;
 		EventActionList actionList;
 		Properties phoneBook;
-		String type;
 		DCEPort port=null;
 		ModemConfig cfg;
 		ExtModemCore modem;
-		int speed;
-		HostAddress addy;
 		StringBuffer sbInit=new StringBuffer();
-		int dir,action;
 		LinePortFactory factory=new ExtLinePortFactory();
 		
 		if((line=pool.getLine())!= null && line.getPort() != null) {
@@ -185,9 +181,7 @@ public class ModemPoolThread extends Thread {
 	
 	public void run() {
 		ServerSocket listenSock;
-		Socket serverSock;
 		ModemCore modem;
-		FileEventAction msg;
 		TCPPort ipCall;
 			
 		// listen for incoming connections.
@@ -234,8 +228,6 @@ public class ModemPoolThread extends Thread {
 		EventAction ea=null;
 		int dir,action=0, iter;
 		boolean asynch;
-		String type;
-		
 		
 		for(int j=0,len=modem.getEventActionSize();j<len;j++) {
 			info=modem.getEventAction(j);
