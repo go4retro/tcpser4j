@@ -25,6 +25,11 @@ package org.jbrain.hayes.cmd;
 import org.jbrain.GenericException;
 
 public class CommandException extends GenericException {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6069840223686563704L;
+
 	public CommandException(String error) {
 		super(error);
 	}

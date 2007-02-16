@@ -25,6 +25,11 @@ package org.jbrain.hayes;
 import org.jbrain.GenericException;
 
 public class PortException extends GenericException {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8082777441756782083L;
+
 	public PortException(String error) {
 		super(error);
 	}

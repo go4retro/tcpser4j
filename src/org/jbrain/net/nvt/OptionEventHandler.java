@@ -23,6 +23,8 @@
  */
 package org.jbrain.net.nvt;
 
+import org.jbrain.net.nvt.options.NVTOption;
+
 
 public interface OptionEventHandler {
 	public NVTOption newSubOption(byte code, byte[] data);

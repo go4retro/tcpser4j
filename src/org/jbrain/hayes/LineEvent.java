@@ -23,6 +23,10 @@
 package org.jbrain.hayes;
 
 public class LineEvent extends org.jbrain.util.SerialEvent {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8941642941961143203L;
 	public static final int BI=gnu.io.SerialPortEvent.BI;
 	public static final int CD=gnu.io.SerialPortEvent.CD;
 	public static final int CTS=gnu.io.SerialPortEvent.CTS;

@@ -25,7 +25,7 @@ package org.jbrain.net.nvt.handlers;
 
 import org.jbrain.net.nvt.OptionEvent;
 
-public class SimpleHandler extends DefaultOptionHandler {
+public class SimpleHandler extends AbstractOptionHandler {
 
 	public void doReceived(OptionEvent event) {
 		sendWILLOption(event);
@@ -33,6 +33,9 @@ public class SimpleHandler extends DefaultOptionHandler {
 
 	public void willReceived(OptionEvent event) {
 		sendDOOption(event);
+	}
+
+	public void optionDataReceived(OptionEvent event) {
 	}
 
 }

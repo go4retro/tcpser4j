@@ -23,6 +23,10 @@
 package org.jbrain;
 
 public class GenericException extends Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6820423183792729255L;
 	private Throwable _exception;
 	
 	public GenericException() {

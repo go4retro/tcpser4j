@@ -23,6 +23,11 @@
 package org.jbrain.hayes.cmd;
 
 public class CommandNotFoundException extends CommandException {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6377105272703215649L;
+
 	public CommandNotFoundException(char cmd) {
 		super("Command " + cmd + " not found");
 	}

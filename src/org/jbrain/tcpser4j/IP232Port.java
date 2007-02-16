@@ -24,36 +24,17 @@ package org.jbrain.tcpser4j;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
-
 import org.apache.log4j.Logger;
 import org.jbrain.hayes.*;
-import org.jbrain.io.*;
 
-public class IP232Port extends Thread implements DCEPort {
-	private int _iSpeed;
-	private boolean _bDSR;
-	private boolean _bRI;
-	private static Logger _log=Logger.getLogger(TCPPort.class);
-	private ArrayList _listeners=new ArrayList();
-	private PipedInputStream _is=new PipedInputStream();
-	private ServerSocket _listenSock;
-	private CheckedOutputStream _os= new CheckedOutputStream();
-	private boolean _bDCD=false;
-	private boolean _bDTR=false;
+public class IP232Port extends AbstractIPDCEPort {
+	private static Logger _log=Logger.getLogger(IP232Port.class);
 
 	/**
 	 * 
 	 */
 	public IP232Port(int port, int speed) throws PortException {
-		_iSpeed=speed;
-		try {
-			_listenSock = new ServerSocket(port);
-		} catch (IOException e) {
-			_log.error(e);
-			throw new PortException("Listen Error",e);
-		}
-		setDaemon(true);
+		super(port,speed);
 	}
 	
 	public void run() {
@@ -91,119 +72,4 @@ public class IP232Port extends Thread implements DCEPort {
 		}
 		
 	}
-
-	/**
-	 * @param b
-	 */
-	private void setDTR(boolean b) {
-		if(b != _bDTR) {
-			sendEvent(new DCEEvent(this,DCEEvent.DTR,_bDTR,b));
-		}
-		_bDTR=b;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#setDCD(boolean)
-	 */
-	public void setDCD(boolean b) {
-		_bDCD=b;
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#isDTR()
-	 */
-	public boolean isDTR() {
-		return _bDTR;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#addEventListener(org.jbrain.hayes.DCEEventListener)
-	 */
-	public void addEventListener(DCEEventListener lsnr) {
-		_listeners.add(lsnr);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#removeEventListener(org.jbrain.hayes.DCEEventListener)
-	 */
-	public void removeEventListener(DCEEventListener listener) {
-		if(_listeners.contains(listener)) {
-			_listeners.remove(listener);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.ModemPort#setFlowControl(int)
-	 */
-	public void setFlowControl(int control) {
-		// do nothing
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.ModemPort#getInputStream()
-	 */
-	public InputStream getInputStream() throws IOException {
-		return _is;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.ModemPort#getOutputStream()
-	 */
-	public OutputStream getOutputStream() throws IOException {
-		return _os;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.ModemPort#getSpeed()
-	 */
-	public int getSpeed() {
-		return _iSpeed;
-	}
-
-	private void sendEvent(DCEEvent event) {
-		if(_listeners.size() > 0) {
-			for(int j=0;j<_listeners.size();j++) {
-				((DCEEventListener)_listeners.get(j)).dceEvent(event);
-			}
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#isDCD()
-	 */
-	public boolean isDCD() {
-		return _bDCD;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#setRI(boolean)
-	 */
-	public void setRI(boolean b) {
-		_bRI=b;
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#isRI()
-	 */
-	public boolean isRI() {
-		return _bRI;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#setDSR(boolean)
-	 */
-	public void setDSR(boolean b) {
-		_bDSR=b;
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jbrain.hayes.DCEPort#isDSR()
-	 */
-	public boolean isDSR() {
-		return _bDSR;
-	}
-
 }

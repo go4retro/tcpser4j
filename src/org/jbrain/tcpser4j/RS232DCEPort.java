@@ -31,7 +31,6 @@ import org.jbrain.hayes.*;
 
 public class RS232DCEPort extends AbstractRS232Port implements DCEPort {
 	private boolean _bRI;
-
 	private boolean _bDSR;
 
 	private ArrayList _listeners=new ArrayList();

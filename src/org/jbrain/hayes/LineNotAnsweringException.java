@@ -24,6 +24,11 @@ package org.jbrain.hayes;
 
 public class LineNotAnsweringException extends PortException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7962290169050410975L;
+
 	public LineNotAnsweringException() {
 		super("");
 	}

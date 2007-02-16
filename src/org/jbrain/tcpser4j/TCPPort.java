@@ -29,14 +29,10 @@ import java.util.*;
 import org.apache.log4j.*;
 
 import org.jbrain.hayes.*;
-import org.jbrain.io.nvt.*;
-import org.jbrain.net.nvt.NVTOption;
 import org.jbrain.net.nvt.NVTOutputStream;
 import org.jbrain.net.nvt.NVTInputStream;
-import org.jbrain.net.nvt.OptionEvent;
-import org.jbrain.net.nvt.OptionEventHandler;
 import org.jbrain.net.nvt.handlers.*;
-import org.jbrain.net.nvt.options.TerminalTypeSubOption;
+import org.jbrain.net.nvt.options.NVTOption;
 
 public class TCPPort extends Thread implements LinePort {
 	private boolean _bDCD=false;

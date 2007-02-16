@@ -25,9 +25,9 @@ package org.jbrain.net.nvt;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 
 import org.apache.log4j.Logger;
+import org.jbrain.net.nvt.options.NVTOption;
 
 public class NVTOutputStream extends FilterOutputStream {
 	private static Logger _log=Logger.getLogger(NVTOutputStream.class);

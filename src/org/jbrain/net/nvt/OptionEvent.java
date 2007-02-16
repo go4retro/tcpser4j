@@ -25,6 +25,8 @@ package org.jbrain.net.nvt;
 
 import java.util.EventObject;
 
+import org.jbrain.net.nvt.options.NVTOption;
+
 
 
 public class OptionEvent extends EventObject {

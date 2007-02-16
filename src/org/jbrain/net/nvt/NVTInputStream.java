@@ -26,6 +26,7 @@ import java.io.*;
 
 import org.apache.log4j.*;
 import org.jbrain.net.nvt.handlers.DefaultOptionHandler;
+import org.jbrain.net.nvt.options.NVTOption;
 
 import java.util.ArrayList;
 import java.util.HashMap;

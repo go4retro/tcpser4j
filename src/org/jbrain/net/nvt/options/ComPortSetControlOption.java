@@ -18,31 +18,24 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 	@author Jim Brain
-	Created on Feb 14, 2007
+	Created on Feb 16, 2007
 	
  */
-package org.jbrain.net.nvt.handlers;
+package org.jbrain.net.nvt.options;
 
-import org.jbrain.net.nvt.OptionEvent;
-import org.jbrain.net.nvt.options.NVTOption;
-import org.jbrain.net.nvt.options.TerminalTypeSubOption;
+public class ComPortSetControlOption extends ComPortSubOption {
+	public static final byte COMMAND_SET_DTR_ON=8;
+	public static final byte COMMAND_SET_DTR_OFF=9;
+	private byte _command;
 
-public class TerminalTypeOptionHandler extends SimpleHandler {
-	private String _type;
-
-	public TerminalTypeOptionHandler(String type) {
-		_type=type;
+	public ComPortSetControlOption(boolean bServer, byte cmd) {
+		super(bServer,ComPortSubOption.SUB_OPT_SET_CONTROL);
+		// TODO assume data.length=2?
+		_command=cmd;
 	}
 	
-	public NVTOption newSubOption(byte code, byte[] data) {
-		return new TerminalTypeSubOption(data);		
+	public byte getCommandCode() {
+		return _command;
 	}
-	
-	public void optionDataReceived(OptionEvent event) {
-		TerminalTypeSubOption tto=(TerminalTypeSubOption)event.getOption();
-		if(tto.valueRequired()) {
-			tto.setTerminalType(_type);
-			sendSubOption(event);
-		}
-	}
+
 }

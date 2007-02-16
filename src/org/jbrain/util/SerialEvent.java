@@ -23,6 +23,10 @@
 package org.jbrain.util;
 
 public class SerialEvent extends java.util.EventObject {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8785482763426324107L;
 	private int _type;
 	private boolean _old;
 	private boolean _new;

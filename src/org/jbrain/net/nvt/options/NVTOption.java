@@ -21,7 +21,7 @@
 	Created on May 3, 2006
 	
  */
-package org.jbrain.net.nvt;
+package org.jbrain.net.nvt.options;
 
 
 public class NVTOption {

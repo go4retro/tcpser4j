@@ -24,6 +24,11 @@ package org.jbrain.hayes.cmd;
 
 public class InvalidLevelException extends CommandException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2838194506420109777L;
+
 	public InvalidLevelException(FlagCommand cmd) {
 		super("Cannot set command " + cmd.getFlag() + " to level " + cmd.getLevel());
 	}

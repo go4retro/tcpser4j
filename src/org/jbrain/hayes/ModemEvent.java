@@ -33,6 +33,11 @@ import java.util.EventObject;
  */
 public class ModemEvent extends EventObject {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 767755287657510399L;
+
 	private int _iType;
 	
 	public static final int OFF_HOOK=1;

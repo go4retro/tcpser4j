@@ -23,7 +23,6 @@
  */
 package org.jbrain.net.nvt.options;
 
-import org.jbrain.net.nvt.NVTOption;
 
 public class TerminalTypeSubOption extends NVTOption {
 	private static final byte SUB_OPT_TERMINAL_TYPE_IS= 0;

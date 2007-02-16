@@ -23,6 +23,10 @@
 package org.jbrain.hayes;
 
 public class DCEEvent extends org.jbrain.util.SerialEvent {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5665702061675030337L;
 	//public static final int BI=gnu.io.SerialPortEvent.BI;
 	public static final int CTS=gnu.io.SerialPortEvent.CTS;
 	public static final int DATA_AVAILABLE=gnu.io.SerialPortEvent.DATA_AVAILABLE; 

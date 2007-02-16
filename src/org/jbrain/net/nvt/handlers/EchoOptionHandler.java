@@ -23,13 +23,9 @@
  */
 package org.jbrain.net.nvt.handlers;
 
-import java.io.IOException;
-
-import org.jbrain.net.nvt.NVTOption;
-import org.jbrain.net.nvt.NVTOutputStream;
 import org.jbrain.net.nvt.OptionEvent;
 
-public class EchoOptionHandler extends DefaultOptionHandler {
+public class EchoOptionHandler extends AbstractOptionHandler {
 	private boolean _bInit;
 	private boolean _bLocalEcho;
 	private boolean _bRemoteEcho;
@@ -52,5 +48,8 @@ public class EchoOptionHandler extends DefaultOptionHandler {
 			sendDOOption(event);
 		else
 			sendDONTOption(event);
+	}
+
+	public void optionDataReceived(OptionEvent event) {
 	}
 }

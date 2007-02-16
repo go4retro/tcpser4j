@@ -23,13 +23,10 @@
  */
 package org.jbrain.net.nvt.handlers;
 
-import java.io.IOException;
-
-import org.jbrain.net.nvt.NVTOption;
 import org.jbrain.net.nvt.OptionEvent;
-import org.jbrain.net.nvt.OptionEventHandler;
+import org.jbrain.net.nvt.options.NVTOption;
 
-public class DefaultOptionHandler implements OptionEventHandler {
+public class DefaultOptionHandler extends AbstractOptionHandler {
 
 	public NVTOption newSubOption(byte code, byte[] data) {
 		return new NVTOption(code);
@@ -39,48 +36,11 @@ public class DefaultOptionHandler implements OptionEventHandler {
 		sendWONTOption(event);
 	}
 
-	public void dontReceived(OptionEvent event) {
-		sendWONTOption(event);
+	public void willReceived(OptionEvent event) {
+		sendDONTOption(event);
 	}
 
 	public void optionDataReceived(OptionEvent event) {
 	}
 
-	public void willReceived(OptionEvent event) {
-		sendDONTOption(event);
-	}
-
-	public void wontReceived(OptionEvent event) {
-		sendDONTOption(event);
-	}
-
-	protected void sendWILLOption(OptionEvent event) {
-		try {
-			event.getOutputStream().sendWILLOption(event.getOption());
-		} catch (IOException e) {}
-	}
-
-	protected void sendWONTOption(OptionEvent event) {
-		try {
-			event.getOutputStream().sendWONTOption(event.getOption());
-		} catch (IOException e) {}
-	}
-
-	protected void sendDOOption(OptionEvent event) {
-		try {
-			event.getOutputStream().sendDOOption(event.getOption());
-		} catch (IOException e) {}
-	}
-
-	protected void sendDONTOption(OptionEvent event) {
-		try {
-			event.getOutputStream().sendDONTOption(event.getOption());
-		} catch (IOException e) {}
-	}
-
-	protected void sendSubOption(OptionEvent event) {
-		try {
-			event.getOutputStream().sendSubOption(event.getOption());
-		} catch (IOException e) {}
-	}
 }

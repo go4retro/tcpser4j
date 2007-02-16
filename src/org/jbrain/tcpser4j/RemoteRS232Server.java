@@ -22,48 +22,59 @@
 
 package org.jbrain.tcpser4j;
 
-import java.io.IOException;
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 import org.apache.log4j.*;
 import org.jbrain.hayes.*;
-import org.jbrain.hayes.remote.*;
 import org.jbrain.io.*;
+import org.jbrain.net.nvt.NVTInputStream;
+import org.jbrain.net.nvt.NVTOutputStream;
+import org.jbrain.net.nvt.handlers.EchoOptionHandler;
+import org.jbrain.net.nvt.handlers.TransmitBinaryOptionHandler;
+import org.jbrain.net.nvt.options.NVTOption;
 
-public class RS232Forwarder extends Thread {
-	private static Logger _log=Logger.getLogger(RS232Forwarder.class);
+public class RemoteRS232Server extends Thread {
+	private static Logger _log=Logger.getLogger(RemoteRS232Server.class);
 	// this should use a RS232DCEPort
 	private DCEPort _dcePort;
 	private ServerSocket _listenSock;
 	private byte[] _data=new byte[1024];
-	private RemoteDCEOutputStream _os;
 	private CheckedOutputStream _cos;
-	private InputStream _is;
+	private InputStream _isDCE;
+	
 
 	private DCEEventListener _dceEventListener=new DCEEventListener() {
 		public void dceEvent(DCEEvent event) {
-			RS232Forwarder.this.handleDCEEvent(event);
+			switch (event.getEventType()) {
+				case DCEEvent.DATA_AVAILABLE:
+					try {
+						int len=_isDCE.read(_data);
+						_cos.write(_data,0,len);
+					} catch (IOException e) {
+						_log.error(e);
+						/// hmm what to do
+					}
+					break;
+				case DCEEvent.DTR:
+					// send a DTR command via NVT.
+					//_os.sendEvent(new RemoteDCEEvent(this,RemoteDCEEvent.DTR,event.getOldValue(),event.getNewValue()));
+					break;
+			}
 		}
 	};
 
-	private RemoteDCEEventListener _rdceEventListener=new RemoteDCEEventListener() {
-		public void serialEvent(RemoteDCEEvent event) {
-			RS232Forwarder.this.handleRDCEEvent(event);
-		}
-	};
-	
-	
-	public RS232Forwarder(DCEPort dcePort, int ipPort) throws IOException, TooManyListenersException {
+	public RemoteRS232Server(DCEPort dcePort, int ipPort) throws IOException {
 		_dcePort=dcePort;
 		try {
-			//_dcePort.setDCD(false);
 			_listenSock=new ServerSocket(ipPort);
+			// add our RS232 listener.
 			_dcePort.addEventListener(_dceEventListener);
-			_is=new LogInputStream(dcePort.getInputStream(),"Serial In");
+			// set up streams to log.
+			_isDCE=new LogInputStream(_dcePort.getInputStream(),"Serial In");
+			_dcePort.start();
+			
 			_cos=new CheckedOutputStream();
-			_os=new RemoteDCEOutputStream(new LogOutputStream(_cos,"TCP/IP Out"));
 			setDaemon(false);
 			start();
 		} catch (IOException e) {
@@ -72,58 +83,31 @@ public class RS232Forwarder extends Thread {
 		}
 	}
 	
-	/**
-	 * @param event
-	 */
-	protected void handleRDCEEvent(RemoteDCEEvent event) {
-		switch (event.getEventType()) {
-			case RemoteDCEEvent.CD:
-				_dcePort.setDCD(event.getNewValue());
-				break;
-		}
-	}
-
-	/**
-	 * @param event
-	 */
-	protected void handleDCEEvent(DCEEvent event) {
-		switch (event.getEventType()) {
-			case DCEEvent.DATA_AVAILABLE:
-				try {
-					int len=_is.read(_data);
-					_os.write(_data,0,len);
-				} catch (IOException e) {
-					_log.error(e);
-					/// hmm what to do
-				}
-				break;
-			case DCEEvent.DTR:
-				_os.sendEvent(new RemoteDCEEvent(this,RemoteDCEEvent.DTR,event.getOldValue(),event.getNewValue()));
-				break;
-		}
-	}
-
 	public void run() {
 		Socket socket;
-		RemoteDCEInputStream is;
-		OutputStream os;
+		NVTInputStream is;
+		NVTOutputStream os;
+		LogOutputStream osDCE;
+
 		int len;
 		byte data[] = new byte[1024];
 		
 		try {
-			os=new LogOutputStream(_dcePort.getOutputStream(),"Serial Out");
-			while(true) {
+			 osDCE=new LogOutputStream(_dcePort.getOutputStream(),"Serial Out");
+			 while(true) {
 				socket=_listenSock.accept();
 				// connected to Modem Service.
-			
-				is=new RemoteDCEInputStream(new LogInputStream(socket.getInputStream(),"TCP/IP In"));
-				is.addEventListener(_rdceEventListener);
-				_cos.setOutputStream(socket.getOutputStream());
-				
+				// grab inputStreams and such.
+				os=new NVTOutputStream(socket.getOutputStream());
+				_cos.setOutputStream(os);
+				is=new NVTInputStream(socket.getInputStream(),os);
+				// configure handlers.
+				is.registerOptionHandler(NVTOption.OPT_ECHO, new EchoOptionHandler(false,false,false));
+				is.registerOptionHandler(NVTOption.OPT_TRANSMIT_BINARY,new TransmitBinaryOptionHandler());
+			 
 				try {
 					while((len=is.read(data))>-1) {
-						os.write(data,0,len);
-						_log.debug("Got here");
+						osDCE.write(data,0,len);
 					}
 				} catch (IOException e) {
 					_log.info("Socket closed",e);
@@ -137,13 +121,12 @@ public class RS232Forwarder extends Thread {
 	
 	public static void main(String[] args) {
 		DCEPort port;
-		RS232Forwarder server;
 		Object o=new Object();
 		
 		if(args.length >= 2) {
 			try {
 				port=new RS232DCEPort(args[0],Integer.parseInt(args[1]));
-				server=new RS232Forwarder(port,32000);
+				new RemoteRS232Server(port,32000);
 				synchronized(o) {
 					o.wait();
 				}
@@ -154,4 +137,5 @@ public class RS232Forwarder extends Thread {
 			System.err.println("Usage: org.jbrain.tcpser4j.RS232Forwarder port_device speed");
 		}
 	}
+
 }

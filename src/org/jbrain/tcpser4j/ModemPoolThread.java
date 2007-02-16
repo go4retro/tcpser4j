@@ -140,12 +140,7 @@ public class ModemPoolThread extends Thread {
 		if(type.equals("remote232")) {
 			try {
 				HostAddress addy=new HostAddress(m.getDevice());
-				try {
-					port=new RemoteDCEPort(addy.getHost(),addy.getPort(), speed);
-				} catch (PortException e) {
-					_log.error(m.getDevice() + " returned error during initialization.",e);
-					throw e;
-				}
+				port=new NVT232Port(addy.getHost(),addy.getPort(), speed);
 			} catch (NumberFormatException e) {
 				_log.error(m.getDevice() + " is invalid.");
 				throw e;

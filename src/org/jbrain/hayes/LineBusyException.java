@@ -24,6 +24,10 @@ package org.jbrain.hayes;
 
 public class LineBusyException extends PortException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2689072492954903108L;
 	public LineBusyException() {
 		super("");
 	}
