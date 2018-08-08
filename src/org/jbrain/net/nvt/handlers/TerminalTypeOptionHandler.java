@@ -42,7 +42,7 @@ public class TerminalTypeOptionHandler extends SimpleHandler {
 		TerminalTypeSubOption tto=(TerminalTypeSubOption)event.getOption();
 		if(tto.valueRequired()) {
 			tto.setTerminalType(_type);
-			sendSubOption(event);
+			sendSubOption(event.getOutputStream(),event.getOption());
 		}
 	}
 }

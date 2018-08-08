@@ -69,9 +69,10 @@ public abstract class AbstractOptionHandler implements OptionEventHandler {
 		} catch (IOException e) {}
 	}
 
-	protected void sendSubOption(NVTOutputStream os, ComPortSetControlOption option) {
+	protected void sendSubOption(NVTOutputStream os, NVTOption option) {
 		try {
 			os.sendSubOption(option);
 		} catch (IOException e) {
 		}
+	}
 }
