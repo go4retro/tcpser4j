@@ -1,0 +1,85 @@
+/*
+	Copyright Jim Brain and Brain Innovations, 2004,2005
+  
+	This file is part of TCPSer4J.
+
+	SchemaBinder is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	TCPSer4J is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with TCPSer4J; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    
+	@author Jim Brain
+*/
+
+package org.jbrain.hayes.cmd;
+
+import org.jbrain.hayes.*;
+
+public class GetCommand extends AbstractCommand {
+	
+	private char _mod;
+	private String _data="";
+
+        String line;
+        
+	public char getModifier() {
+		return _mod;
+	}
+	
+	public String getData() {
+		return _data;
+	}
+
+		
+	public int parse(byte[] data, int iPos, int iLen) throws CommandException {
+		// skip over blanks.
+		while(iPos<iLen && data[iPos]==' ') { iPos++; }
+		if(iPos< iLen) {
+
+                        if(Character.toUpperCase((char)data[iPos]) == 'E' &&
+                            Character.toUpperCase((char)data[iPos+1]) == 'T')
+                        {
+                            _data=new String(data,iPos+2,iLen-iPos-2).trim();
+                            return iLen;
+                        }
+  		}
+		return iLen;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jbrain.hayes.cmd.Command#execute(org.jbrain.hayes.ModemCore)
+	 */
+	public CommandResponse execute(ModemCore core) throws CommandException {
+		LinePort port;
+                
+            try {
+                return core.get(this);
+            } catch (PortException ex) {
+                throw new CommandException("Connect error",ex);
+            }
+	}
+
+	/**
+	 * 
+	 */
+	protected void sendDialResponse(ModemCore core) {
+		StringBuffer sb=new StringBuffer();
+				
+		//if(getModifier() != DIAL_DEFAULT) {
+		//	sb.append(getModifier());
+		//}
+		// send number back.
+		sb.append(getData());
+		core.sendResponse(sb.toString().toUpperCase());
+		core.sendResponse("");
+	}
+}

@@ -39,6 +39,7 @@ public class CommandTokenizer {
 			addCommand(Command.TYPE_NORMAL,'B',"org.jbrain.hayes.cmd.ProtocolCommand");
 			addCommand(Command.TYPE_NORMAL,'D',"org.jbrain.hayes.cmd.DialCommand");
 			addCommand(Command.TYPE_NORMAL,'E',"org.jbrain.hayes.cmd.EchoCommand");
+			addCommand(Command.TYPE_NORMAL,'G',"org.jbrain.hayes.cmd.GetCommand");
 			addCommand(Command.TYPE_NORMAL,'H',"org.jbrain.hayes.cmd.HangupCommand");
 			addCommand(Command.TYPE_NORMAL,'L',"org.jbrain.hayes.cmd.LoudnessCommand");
 			addCommand(Command.TYPE_NORMAL,'M',"org.jbrain.hayes.cmd.SpeakerCommand");
