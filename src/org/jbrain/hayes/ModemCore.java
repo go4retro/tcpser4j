@@ -23,12 +23,19 @@
 package org.jbrain.hayes;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TooManyListenersException;
 
 import org.apache.log4j.*;
 import org.jbrain.hayes.cmd.*;
 import org.jbrain.io.LogInputStream;
 import org.jbrain.io.LogOutputStream;
+import org.jbrain.util.*;						 
 
 public abstract class ModemCore {
 	private LinePortFactory _factory;
@@ -70,6 +77,11 @@ public abstract class ModemCore {
 	private OutputStream _osDCE;
 	
 	private ArrayList _listeners=new ArrayList();
+	private URL url;
+    private InputStream is = null;
+    private BufferedReader br;
+    private String line;
+    private String httpResponse;
 	
 	private LineEventListener _lineEventListener=new LineEventListener() {
 		public void lineEvent(LineEvent event) {
@@ -392,6 +404,63 @@ public abstract class ModemCore {
 		}
 		return rc;
 	}
+	
+    
+    public CommandResponse get(GetCommand cmd) throws PortException {
+        
+            // update last number dialed
+	//setLastNumber(cmd);
+	// go offhook.
+	setOffHook(true);
+	if(cmd.getData().length() != 0) {
+		try {
+                        httpResponse = "";
+                        url = new URL(cmd.getData());
+                        URLConnection conn = url.openConnection();
+                        is = conn.getInputStream();
+                        
+                        Map<String, List<String>> map = conn.getHeaderFields();
+                        for (String key : map.keySet()) {
+                            httpResponse += key + ":";
+                            List<String> values = map.get(key);
+                            for (String aValue : values) {
+                                httpResponse += aValue + "\r\n";
+                            }
+                        }
+                        
+                        //is = url.openStream();  // throws an IOException
+                        br = new BufferedReader(new InputStreamReader(is));
+                        
+                        while ((line = br.readLine()) != null) {
+                            //System.out.println(line);
+                            httpResponse += line + "\r\n";
+                        }
+                        sendResponse(httpResponse);
+                    } catch (MalformedURLException mue) {
+                            //mue.printStackTrace();
+                            hangup();
+                            return new CommandResponse(ResponseMessage.ERROR);
+                        } catch (IOException ioe) {
+                            //ioe.printStackTrace();
+                            hangup();
+                            return new CommandResponse(ResponseMessage.NO_ANSWER);
+                        } finally {
+                            try {
+                                if (is != null) is.close();
+                            } catch (IOException ioe) {
+                                hangup();
+                                return new CommandResponse(ResponseMessage.ERROR);
+                            }
+                    }
+	} else {
+		hangup();
+                    return new CommandResponse(ResponseMessage.ERROR);
+	}
+            
+        hangup();
+        return new CommandResponse(ResponseMessage.NO_CARRIER);
+        
+    }
 	
 	public CommandResponse dial(DialCommand cmd) throws PortException {
 		// update last number dialed
